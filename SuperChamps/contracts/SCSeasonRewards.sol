@@ -129,7 +129,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         uint256 id_,
         uint256 reward_amount_,
         uint256 claim_duration
-    ) external isGlobalAdmin nonreentrant
+    ) external isQuestSystem nonreentrant
     {
         Season storage _season = seasons[id_];
         require(_season.start_time > 0, "SEASON NOT FOUND");
@@ -194,7 +194,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         
         uint256 _total_score = _season.total_score;
         for (uint256 i = 0; i < players_.length; i++) {
-            _total_score += (_total_score - season_scores[season_id_][players_[i]]) + scores_[i];
+            _total_score = (_total_score - season_scores[season_id_][players_[i]]) + scores_[i];
             season_scores[season_id_][players_[i]] = scores_[i];
         }
 
