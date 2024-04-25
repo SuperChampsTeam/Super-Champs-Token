@@ -5,7 +5,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "../interfaces/IPermissionsManager.sol";
+import "../../interfaces/IPermissionsManager.sol";
 
 contract TransferLockERC20 is ERC20, ERC20Permit {
     IPermissionsManager immutable public permissions;

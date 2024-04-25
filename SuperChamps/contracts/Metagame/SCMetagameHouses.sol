@@ -5,8 +5,8 @@ pragma solidity ^0.8.24;
 
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interfaces/IPermissionsManager.sol";
-import "../interfaces/ISCMetagameRegistry.sol";
+import "../../interfaces/IPermissionsManager.sol";
+import "../../interfaces/ISCMetagameRegistry.sol";
 import "./SCMetagameHouseRewards.sol";
 
 contract SCMetagameHouses {
@@ -22,7 +22,7 @@ contract SCMetagameHouses {
     address public treasury;
     uint256 public EPOCH = 7 days;
 
-    mapping(string => StakingRewards) public house_rewards_stakers;
+    mapping(string => StakingRewards) public house_rewards;
     mapping(uint256 => EpochData) private epoch_data;
     string[] public houses;
     uint256[] public award_tiers_bps;
@@ -52,14 +52,20 @@ contract SCMetagameHouses {
         treasury = treasury_;
     }
 
+    /// @notice Assigns a new treasury from which the metagame system draws token rewards.
+    /// @dev Only callable by address with Global Admin permissions. Ability to withdraw tokens from treasury_ must be set separately.
+    /// @param treasury_ The new treasury's address. 
     function setTreasury(address treasury_) external isGlobalAdmin {
         treasury = treasury_;
     }
 
+    /// @notice Add a new "House" to the metagame system.
+    /// @dev This creates a new contract which participants can contribute tokens to. This new entity is bound to one of the possible "Houses" that the participants accounts can belong to.
+    /// @param house_name_ A name for the new "House". Must be the same string used by the metadata registry system.
     function addHouse(string calldata house_name_) external isSystemsAdmin {
-        require(address(house_rewards_stakers[house_name_]) == address(0), "HOUSE EXISTS");
+        require(address(house_rewards[house_name_]) == address(0), "HOUSE EXISTS");
 
-        house_rewards_stakers[house_name_] = new SCMetagameHouseRewards(
+        house_rewards[house_name_] = new SCMetagameHouseRewards(
             address(token),
             address(metadata),
             house_name_
@@ -68,8 +74,10 @@ contract SCMetagameHouses {
         houses.push(house_name_);
     }
 
+    /// @notice Retreives the address of the contribution repository of the specified "House".
+    /// @param house_name_ The name of the "House". Must be the same string used by the metadata registry system.
     function getHouseRewardsStaker(string memory house_name_) public view returns (address) {
-        return address(house_rewards_stakers[house_name_]);
+        return address(house_rewards[house_name_]);
     }
 
     function assignAwardTiers(uint256[] memory tiers_) external isSystemsAdmin {
@@ -135,7 +143,7 @@ contract SCMetagameHouses {
         bool _any_zero_order = false;
         for(uint256 i = 0; i < houses.length; i++) {
             string memory _house = houses[i];
-            require(address(house_rewards_stakers[_house]) != address(0), "HOUSE DOESNT EXIST");
+            require(address(house_rewards[_house]) != address(0), "HOUSE DOESNT EXIST");
 
             uint256 _order = _epoch_data.house_orders[_house];
             uint256 _share = _balance / houses.length; //_share defaults to an even split
@@ -147,9 +155,9 @@ contract SCMetagameHouses {
                 _any_zero_order = true;
             }
 
-            house_rewards_stakers[_house].setRewardsDuration(_duration);
-            token.transfer(address(house_rewards_stakers[_house]), _share);
-            house_rewards_stakers[_house].notifyRewardAmount(_share);
+            house_rewards[_house].setRewardsDuration(_duration);
+            token.transfer(address(house_rewards[_house]), _share);
+            house_rewards[_house].notifyRewardAmount(_share);
         }
 
         current_epoch = next_epoch;
@@ -162,7 +170,7 @@ contract SCMetagameHouses {
     }
 
     function recoverERC20FromHouse(string calldata house_, address tokenAddress_, uint256 tokenAmount_) external isSystemsAdmin {
-        house_rewards_stakers[house_].recoverERC20(tokenAddress_, tokenAmount_);
+        house_rewards[house_].recoverERC20(tokenAddress_, tokenAmount_);
     }
 
     function setEpochDuration(uint256 duration_) external isSystemsAdmin {

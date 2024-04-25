@@ -3,10 +3,10 @@
 
 pragma solidity ^0.8.24;
 
-import "../interfaces/IVestingEscrow.sol";
+import "../../interfaces/IVestingEscrow.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./ABDKMath64x64.sol";
-import "../interfaces/IPermissionsManager.sol";
+import "../Utils/ABDKMath64x64.sol";
+import "../../interfaces/IPermissionsManager.sol";
 
 /// @title An exponential decay-rate emissions vesting contract.
 /// @author Chance Santana-Wees

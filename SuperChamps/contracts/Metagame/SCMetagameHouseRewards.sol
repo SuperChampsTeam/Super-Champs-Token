@@ -3,9 +3,10 @@
 
 pragma solidity ^0.8.24;
 
-import { StakingRewards } from "../../synthetix/contracts/StakingRewards.sol";
+import { StakingRewards } from "../../../synthetix/contracts/StakingRewards.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interfaces/ISCMetagameRegistry.sol";
+import "../../interfaces/ISCMetagameRegistry.sol";
+
 
 contract SCMetagameHouseRewards is StakingRewards {
     string constant HOUSE_ID_KEY = "house_id";
@@ -24,7 +25,9 @@ contract SCMetagameHouseRewards is StakingRewards {
         house_hash = keccak256(bytes(house_id));
     }
 
-
+    /**
+     * @dev See {StakingRewards-stake}.
+     */
     function stake(uint256 amount_) external override nonReentrant notPaused updateReward(msg.sender) {
         bytes32 _sender_house_hash = keccak256(abi.encodePacked(metadata.metadataFromAddress(msg.sender, HOUSE_ID_KEY)));
         require(_sender_house_hash == house_hash);

@@ -3,8 +3,8 @@
 
 pragma solidity ^0.8.24;
 
-import "../interfaces/IPermissionsManager.sol";
-import "../interfaces/ISCMetagameRegistry.sol";
+import "../../interfaces/IPermissionsManager.sol";
+import "../../interfaces/ISCMetagameRegistry.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
 contract SCMetagameRegistry is ISCMetagameRegistry, Context {

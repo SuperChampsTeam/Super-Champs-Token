@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.24;
 
-import "../interfaces/IPermissionsManager.sol";
+import "../../interfaces/IPermissionsManager.sol";
 
 contract PermissionsManager is IPermissionsManager {
     mapping(address => mapping(Role => bool)) private role_mapping;

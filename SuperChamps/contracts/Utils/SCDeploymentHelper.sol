@@ -5,8 +5,8 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PermissionsManager.sol";
-import "./ExponentialVestingEscrow.sol";
-import "./TransferLockERC20.sol";
+import "../Token/ExponentialVestingEscrow.sol";
+import "../Token/TransferLockERC20.sol";
 
 contract SCDeploymentHelper {
     IPermissionsManager immutable private _permissions;
