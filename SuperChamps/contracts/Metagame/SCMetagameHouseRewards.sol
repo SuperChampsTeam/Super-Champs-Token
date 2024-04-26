@@ -7,14 +7,25 @@ import { StakingRewards } from "../../../synthetix/contracts/StakingRewards.sol"
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/ISCMetagameRegistry.sol";
 
-
+/// @title House membership gated extension of a Synthetix StakingRewards contract
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+/// @notice Requires that a contributor belong to the associated house, as defined by the protocol metadata registry.
 contract SCMetagameHouseRewards is StakingRewards {
+    /// @dev The key of the house id metadata tag. Used to retrieve house membership data of addresses from the metadata registry. 
     string constant HOUSE_ID_KEY = "house_id";
 
+    /// @notice The metadata registry
     ISCMetagameRegistry immutable metadata;
-    string public house_id;
-    bytes32 house_hash;
 
+    /// @notice The name of the associated house
+    string public house_id;
+
+    /// @dev Hash of the name of the house, used for comparison with the house names retrieved from the metadata registry
+    bytes32 house_hash;
+    
+    /// @param token_ Address of the emissions token.
+    /// @param metadata_ Address of the protocol metadata registry. Must conform to ISCMetagameRegistry.
+    /// @param house_id_ String representation of the name of the associated "House"
     constructor(
         address token_,
         address metadata_,
@@ -25,9 +36,7 @@ contract SCMetagameHouseRewards is StakingRewards {
         house_hash = keccak256(bytes(house_id));
     }
 
-    /**
-     * @dev See {StakingRewards-stake}.
-     */
+    /// @notice Identical to base contract except that only specific users may deposit tokens. See {StakingRewards-stake}.
     function stake(uint256 amount_) external override nonReentrant notPaused updateReward(msg.sender) {
         bytes32 _sender_house_hash = keccak256(abi.encodePacked(metadata.metadataFromAddress(msg.sender, HOUSE_ID_KEY)));
         require(_sender_house_hash == house_hash);

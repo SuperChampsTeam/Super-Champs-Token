@@ -6,31 +6,28 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PermissionsManager.sol";
 import "../Token/ExponentialVestingEscrow.sol";
-import "../Token/TransferLockERC20.sol";
+import "../Token/SuperChampsToken.sol";
 
 contract SCDeploymentHelper {
     IPermissionsManager immutable private _permissions;
-    TransferLockERC20 private _token;
+    SuperChampsToken public token;
+
+    uint256 private constant TOTAL_SUPPLY = 1_000_000_000 ether;
 
     address private constant SUPER_CHAMPS_MINTER = address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2);
 
-    address private constant JOYRIDE = address(0x5B38Da6a701c568545dCfcB03FcB875f56beddC4); //need correct address
-    uint256 private constant JOYRIDE_ALLOCATION = 400_000_000 ether;
+    address private constant JOYRIDE = address(0xa8CAc43b28A7e5F0Ee797741195A920E88B8e7EB); //Joyride BASE Gnosis Safe
+    uint256 private constant JOYRIDE_ALLOCATION = 320_000_000 ether;
 
     address private constant SUPER_CHAMPS_FOUNDATION = address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2); //need correct address
-    uint256 private constant SUPER_CHAMPS_FOUNDATION_ALLOCATION = 600_000_000 ether;
+    uint256 private constant SUPER_CHAMPS_FOUNDATION_ALLOCATION = 680_000_000 ether;
 
-    uint256 private constant EMISSIONS_RATE_NUMERATOR = 7_687_484;
-    uint256 private constant EMISSIONS_RATE_DIVISOR = 1_000_000_000_000_000;
-    //7_687_484 / 1_000_000_000_000_000 = 0.000000007687484059
-    //1 - 0.000000007687484059 = 0.999999992312516
+    uint256 private constant EMISSIONS_RATE_NUMERATOR = 778;
+    uint256 private constant EMISSIONS_RATE_DIVISOR = 100_000_000_000;
+    //778 / 100_000_000_000 = 0.00000000778
+    //1 - 0.00000000778 = 0.99999999222
     //2_592_000 = 30 days in seconds
-    //1 - (0.999999992312516^2_592_000) = 0.01972874872884055070910246094836 <= emissions per 30 days, target is ~2%
-
-    modifier isMintAdmin() {
-        require(_permissions.hasRole(IPermissionsManager.Role.MINT_ADMIN, msg.sender));
-        _;
-    }
+    //1 - (0.99999999222^2_592_000) = 0.01996379103680036030655598958972 pool contents emissions per 30 days, target is ~2%
 
     modifier isGlobalAdmin() {
         require(_permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
@@ -39,25 +36,25 @@ contract SCDeploymentHelper {
 
     constructor() {
         _permissions = new PermissionsManager();
-        _permissions.addRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender);
-        _permissions.addRole(IPermissionsManager.Role.GLOBAL_ADMIN, JOYRIDE);
+        
+        address[] memory _mint_recipients = new address[](2);
+        uint256[] memory _mint_quantities = new uint256[](2);
+        _mint_recipients[0] = JOYRIDE;
+        _mint_recipients[1] = SUPER_CHAMPS_FOUNDATION;
+        _mint_quantities[0] = JOYRIDE_ALLOCATION;
+        _mint_quantities[1] = SUPER_CHAMPS_FOUNDATION_ALLOCATION;
+
+        token = new SuperChampsToken("Super Champs", "CHAMP", TOTAL_SUPPLY, _permissions);
+
+        _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, JOYRIDE);
+        _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(token));
         _permissions.addRole(IPermissionsManager.Role.GLOBAL_ADMIN, SUPER_CHAMPS_FOUNDATION);
 
-        _permissions.addRole(IPermissionsManager.Role.MINT_ADMIN, SUPER_CHAMPS_MINTER);
-    }
+        token.tokenGenerationEvent(_mint_recipients, _mint_quantities);
 
-    function tokenGenerationEvent() 
-        public isMintAdmin
-    {
-        require(_token == TransferLockERC20(address(0)));
-        uint256 _total_supply = JOYRIDE_ALLOCATION + SUPER_CHAMPS_FOUNDATION_ALLOCATION;
-
-        _token = new TransferLockERC20("Super Champs", "CHAMP", _total_supply, _permissions);
-        _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(_token));
-        _token.tokenGenerationEvent();
-
-        _token.transfer(JOYRIDE, JOYRIDE_ALLOCATION);
-        _token.transfer(SUPER_CHAMPS_FOUNDATION, SUPER_CHAMPS_FOUNDATION_ALLOCATION);
+        require(token.totalSupply() == TOTAL_SUPPLY, "SUPPLY MISMATCH");
+        require(token.balanceOf(JOYRIDE) == JOYRIDE_ALLOCATION, "JOYRIDE MISMATCH");
+        require(token.balanceOf(SUPER_CHAMPS_FOUNDATION) == SUPER_CHAMPS_FOUNDATION_ALLOCATION, "FOUNDATION MISMATCH");
     }
     
     function initializeEmmissions(
@@ -70,12 +67,12 @@ contract SCDeploymentHelper {
         ExponentialVestingEscrow _emissions = new ExponentialVestingEscrow(address(_permissions));
         _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(_emissions));
 
-        _token.transferFrom(msg.sender, address(this), allocation_);
-        _token.approve(address(_emissions), allocation_);
+        token.transferFrom(msg.sender, address(this), allocation_);
+        token.approve(address(_emissions), allocation_);
 
         _emissions.initialize(
             address(0),
-            address(_token),
+            address(token),
             treasury_,
             allocation_,
             start_time_,

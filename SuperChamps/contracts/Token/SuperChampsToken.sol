@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "../../interfaces/IPermissionsManager.sol";
 
-contract TransferLockERC20 is ERC20, ERC20Permit {
+contract SuperChampsToken is ERC20, ERC20Permit {
     IPermissionsManager immutable public permissions;
     uint256 public immutable TOTAL_SUPPLY;
 
@@ -38,13 +38,20 @@ contract TransferLockERC20 is ERC20, ERC20Permit {
         permissions = permissions_;
     }
 
-    function tokenGenerationEvent()
+    function tokenGenerationEvent(
+        address[] memory mint_recipients_,
+        uint256[] memory mint_quantities_)
         public isGlobalAdmin 
     {
         require(totalSupply() == 0, "TOKEN ALREADY GENERATED");
+        require(mint_recipients_.length == mint_quantities_.length, "INCORRECT PARAM LENGTHS");
         require(permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(this)), "TOKEN NOT TRANSFER ADMIN");
         
-        _mint(address(msg.sender), TOTAL_SUPPLY);
+        for(uint256 i = 0; i < mint_recipients_.length; i++) {
+            _mint(address(mint_recipients_[i]), mint_quantities_[i]);
+        }
+
+        require(totalSupply() == TOTAL_SUPPLY, "INCORRECT SUPPLY");
         transfersLocked = true;
     }
 

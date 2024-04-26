@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: None
 // Joyride Games 2024
-
 pragma solidity ^0.8.24;
 
 
@@ -9,37 +8,72 @@ import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCMetagameRegistry.sol";
 import "./SCMetagameHouseRewards.sol";
 
+/// @title Manager for "House Cup" token metagame
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+/// @notice Allows system to add houses, report scores for houses, assign awards tier percentages and distribute emissions tokens to house contribution contracts.
 contract SCMetagameHouses {
+
+    /// @notice Stores data related to each epoch of the house cup metagame
     struct EpochData {
+        /// @notice Maps names of houses to their score
         mapping(string => uint256) house_scores;
+        /// @notice Maps names of houses to their rank order
+        /// @dev Order of 0 is used to indicate an uninitialized score. "1" is top score rank order.
         mapping(string => uint256) house_orders;
     }
 
+    /// @notice The metadata registry.
+    /// @dev Stores house membership information for users.
     ISCMetagameRegistry public immutable metadata;
+
+    /// @notice The permissions registry.
     IPermissionsManager public immutable permissions;
+
+    /// @notice The emissions token.
     IERC20 public immutable token;
     
+    /// @notice The treasury that this contract pulls emissions tokens from.
+    /// @dev An allowance must be set on the emissions token contract that permits this contract access to the treasury's tokens.
     address public treasury;
+
+    /// @notice The duration of the emissions epochs.
     uint256 public EPOCH = 7 days;
 
-    mapping(string => StakingRewards) public house_rewards;
-    mapping(uint256 => EpochData) private epoch_data;
+    /// @notice A mapping of the emissions contribution contracts by house name
+    mapping(string => SCMetagameHouseRewards) public house_rewards;
+    
+    /// @notice List of the existant house names
     string[] public houses;
+
+    /// @notice List of award tiers, measured in proportional basis points
+    /// @dev The top scoring house receives prorata share of emissions from entry 0
     uint256[] public award_tiers_bps;
 
+    /// @notice Mapping of epoch state information by epoch number
+    mapping(uint256 => EpochData) private epoch_data;
+
+    /// @notice The numeric id (start timestamp) of the current epoch
     uint256 public current_epoch = 0;
+
+    /// @notice The numeric id (start timestamp) of the next epoch 
     uint256 public next_epoch = 0;
 
+    /// @notice Function modifier which requires the sender to possess the systems admin permission as recorded in "permissions"
     modifier isSystemsAdmin() {
         require(permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender));
         _;
     }
 
+    /// @notice Function modifier which requires the sender to possess the global admin permission as recorded in "permissions"
     modifier isGlobalAdmin() {
         require(permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
         _;
     }
 
+    /// @param permissions_ Address of the protocol permissions registry. Must conform to IPermissionsManager.
+    /// @param token_ Address of the emissions token.
+    /// @param metadata_ Address of the protocol metadata registry. Must conform to ISCMetagameRegistry.
+    /// @param treasury_ Address of the treasury which holds emissions tokens for use by the House Cup metagame.
     constructor(
         address permissions_,
         address token_,
@@ -60,7 +94,7 @@ contract SCMetagameHouses {
     }
 
     /// @notice Add a new "House" to the metagame system.
-    /// @dev This creates a new contract which participants can contribute tokens to. This new entity is bound to one of the possible "Houses" that the participants accounts can belong to.
+    /// @dev Only callable by address with System Admin permissions. This creates a new contract which participants can contribute tokens to. This new entity is bound to one of the possible "Houses" that the participants accounts can belong to.
     /// @param house_name_ A name for the new "House". Must be the same string used by the metadata registry system.
     function addHouse(string calldata house_name_) external isSystemsAdmin {
         require(address(house_rewards[house_name_]) == address(0), "HOUSE EXISTS");
@@ -80,7 +114,12 @@ contract SCMetagameHouses {
         return address(house_rewards[house_name_]);
     }
 
+    /// @notice Assigns reward tiers for houses. Awards will be based on house rank each epoch.
+    /// @dev Only callable by address with System Admin permissions.
+    /// @param tiers_ List of award tiers, in basis points. Length must match the quantity of houses. Total of all tiers must equal 1000.
     function assignAwardTiers(uint256[] memory tiers_) external isSystemsAdmin {
+        require(tiers_.length == houses.length, "AWARD TIERS MISMATCH");
+
         uint256 _totalBPS = 0;
         delete award_tiers_bps;
 
@@ -92,36 +131,45 @@ contract SCMetagameHouses {
         require(_totalBPS == 1000, "DOES NOT TOTAL TO 1000 BPS");
     }
 
-    function reportHouseScores(uint256 epoch, uint256[] memory scores_, string[] memory houses_) external isSystemsAdmin {
-        require(next_epoch > block.timestamp || next_epoch == 0, "EPOCH NOT INITIALIZED");
-        require(epoch == current_epoch, "REPORT FOR INCORRECT EPOCH");
+    /// @notice Report the scores for each house for the 
+    /// @dev Only callable by address with System Admin permissions. Overwrites previous score reports for current epoch. Must report scores for each existant house.
+    /// @param epoch_ The epoch the report is for
+    /// @param scores_ List of score values in descending order
+    /// @param houses_ List of houses that correspond to the list of scores_
+    function reportHouseScores(uint256 epoch_, uint256[] memory scores_, string[] memory houses_) external isSystemsAdmin {
+        require(epoch_ == current_epoch, "REPORT FOR INCORRECT EPOCH");
         require(scores_.length == houses_.length, "MISMATHCED INPUTS");
         require(houses_.length == houses.length, "NOT A FULL REPORT");
 
         EpochData storage _epoch_data = epoch_data[current_epoch];
 
-        uint256 lastScore = type(uint256).max;
+        uint256 _lastScore = type(uint256).max;
         for(uint256 i = 0; i < scores_.length; i++) {
             string memory _house = houses_[i];
             require(getHouseRewardsStaker(_house) != address(0), "HOUSE DOESNT EXIST");
-            require(lastScore > scores_[i], "HOUSES OUT OF ORDER");
+            require(_lastScore > scores_[i], "HOUSES OUT OF ORDER");
 
-            lastScore = scores_[i];
-            _epoch_data.house_scores[_house] = lastScore;
+            _lastScore = scores_[i];
+            _epoch_data.house_scores[_house] = _lastScore;
             _epoch_data.house_orders[_house] = i + 1; //_order of 0 is used to indicate an uninitialized score. 
         }
     }
 
+    /// @notice Retrieves the score and rank order of a specified house for a given epoch. 
+    /// @param epoch_ The epoch the request is for
+    /// @param house_ The house the request is for
     function getHouseScoreAndOrder(uint256 epoch_, string memory house_) public view returns (uint256 score, uint256 order) {
         score = epoch_data[epoch_].house_scores[house_];
         order = epoch_data[epoch_].house_orders[house_];
     }
 
+    /// @notice Distribute emissions tokens to each houses contributions contract and initializes the next epoch.
+    /// @dev Only callable by address with System Admin permissions. Must be called after the epoch has elapsed. Must be called after a score report is generated for each house (or no houses for equal split). Pulls as many tokens as able from the treasury to split between house contribution emissions contracts.
     function distributeRewards() external isSystemsAdmin {
         require(next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
 
         EpochData storage _epoch_data = epoch_data[current_epoch];
-        require(award_tiers_bps.length == houses.length, "AWARD TIERS MISSING");
+        require(award_tiers_bps.length == houses.length, "AWARD TIERS MISMATCH");
 
         uint256 _amount = token.balanceOf(treasury);
         if(_amount > token.allowance(treasury, address(this))) {
@@ -164,19 +212,32 @@ contract SCMetagameHouses {
         next_epoch = block.timestamp + _duration;
     }
 
-    function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isSystemsAdmin {
-        require(tokenAddress_ != address(token), "Cannot withdraw the staking token");
+    /// @notice Transfer tokens that have been sent to this contract by mistake.
+    /// @dev Only callable by address with Global Admin permissions. Cannot be called to withdraw emissions tokens.
+    /// @param tokenAddress_ The address of the token to recover
+    /// @param tokenAmount_ The amount of the token to recover
+    function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
+        require(tokenAddress_ != address(token), "Cannot withdraw the emissions token");
         IERC20(tokenAddress_).transfer(msg.sender, tokenAmount_);
     }
 
-    function recoverERC20FromHouse(string calldata house_, address tokenAddress_, uint256 tokenAmount_) external isSystemsAdmin {
+    /// @notice Transfer tokens that have been sent to a house staking contract by mistake.
+    /// @dev Only callable by address with Global Admin permissions. Cannot be called to withdraw emissions tokens.
+    /// @param house_ The house name of the contract to recover tokens from
+    /// @param tokenAddress_ The address of the token to recover
+    /// @param tokenAmount_ The amount of the token to recover
+    function recoverERC20FromHouse(string calldata house_, address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
         house_rewards[house_].recoverERC20(tokenAddress_, tokenAmount_);
     }
 
+    /// @notice Set a new duration for subsequent epochs
+    /// @dev Only callable by address with Systems Admin permissions. 
+    /// @param duration_ The new duration in seconds
     function setEpochDuration(uint256 duration_) external isSystemsAdmin {
         EPOCH = duration_;
     }
 
+    /// @notice Read the quantity of houses that exist
     function houseCount() public view returns (uint256 count) {
         count = houses.length;
     }
