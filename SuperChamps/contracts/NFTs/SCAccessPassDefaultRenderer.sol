@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
@@ -7,32 +7,49 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
 
-//Single entry (semi-fungible style) Soul Bound Token metadata renderer. 
-//To be replaced by custom on-chain SVG renderer eventually.
+/// @title Single entry (semi-fungible style) Soul Bound Token metadata renderer. 
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+/// @dev Conforms to subset of IERC721Metadata.
+/// @notice To be replaced by a custom on-chain SVG renderer.
 contract SCAccessPassDefaultRenderer is IERC721MetadataRenderer {
     using Strings for uint256;
 
+    ///@notice The permissions registry
     IPermissionsManager private immutable _permissions;
 
+    ///@notice The name which is returned by the name() function.
     string _name;
+
+    ///@notice The symbol which is returned by the symbol() function.
     string _symbol;
+
+    ///@notice The name which is returned by the name() function.
     string _uri;
 
-    constructor(
-        IPermissionsManager permissions_,
-        string memory name_, 
-        string memory symbol_) 
-    {
-        _permissions = permissions_;
-        _name = name_;
-        _symbol = symbol_;
-    }
-
+    ///@notice A function modifier that restrics calls to addresses with the Systems Admin permission set.
     modifier isSystemsAdmin() {
         require(_permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender));
         _;
     }
 
+    ///@param permissions_ The protocol permissions registry
+    ///@param name_ The name of the NFT collection associated with this renderer.
+    ///@param symbol_ The symbol of the NFT collection associated with this renderer.
+    constructor(
+        IPermissionsManager permissions_,
+        string memory name_, 
+        string memory symbol_,
+        string memory uri_) 
+    {
+        _permissions = permissions_;
+        _name = name_;
+        _symbol = symbol_;
+        _uri = uri_;
+    }    
+
+    ///@notice Sets the URI to return from the tokenURI() function.
+    ///@dev Only callable by a Systems Admin.
+    ///@param uri_ The new URI to return.
     function setURI(string memory uri_) external isSystemsAdmin {
         _uri = uri_;
     }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
@@ -12,26 +12,46 @@ import "../../interfaces/IPermissionsManager.sol";
 /// @author Chance Santana-Wees
 /// @dev Solidity implementation of https://github.com/LlamaPay/yearn-vesting-escrow contract. Modified to emit at an exponentially decaying rate with no finite vesting period.
 contract ExponentialVestingEscrow is IVestingEscrow {
+    ///@notice Emitted when the contract is funded with emissions tokens
     event Fund(address recipient, uint256 amount);
+    
+    ///@notice Emitted when emissions tokens are claimed by the recipient
     event Claim(address recipient, uint256 claimed);
+
+    ///@notice Emitted when the recipient address is changed
     event RecipientChanged(address recipient);
 
+    ///@notice The permissions registry
     IPermissionsManager immutable private _permissions;
-    address private _creator;
+
+    ///@notice The address of the beneficiary of the token emissions
     address public recipient;
+
+    ///@notice The emissions token contract
     IERC20 public token; 
+
+    ///@notice The time at which the emissions contract is set to have started emitting tokens
     uint256 public start_time;
+
+    ///@notice The rate at which tokens are emitted per second. 
+    ///@dev A fixed point value represented using the format from ABDKMath64x64
     int128 public rate_per_second;
+
+    ///@notice The total quantity of emissions tokens locked at the time of initialization
     uint256 public total_locked;
+
+    ///@notice The total quantity of emissions tokens that have been withdrawn
     uint256 public total_claimed;
+
+    ///@notice Toggle that indicates if the emissions contract has been initialized
     bool public initialized;
 
+    ///@notice Toggle that indicates if the token contract is in the process of executing a transaction that could be vulnerable to a re-entrancy attack
     bool _reentrancy_locked;
-
-    uint256 private _ts;
 
     using ABDKMath64x64 for int128;
 
+    ///@notice A function modifier that prevents re-entrancy attacks during sensitive operations
     modifier nonreentrant {
         require(!_reentrancy_locked);
         _reentrancy_locked = true;
@@ -39,15 +59,16 @@ contract ExponentialVestingEscrow is IVestingEscrow {
         _reentrancy_locked = false; 
     }
 
+    ///@notice A function modifier that restricts execution to addresses with the Global Admin permission set.
     modifier isGlobalAdmin() {
         require(_permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
         _;
     }
 
+    ///@param permissions_ The address of the permissions registry. Must conform to IPermissionsManager.
     constructor(
         address permissions_
     ) {
-        _creator = msg.sender;
         _permissions = IPermissionsManager(permissions_);
     }
     
@@ -178,5 +199,14 @@ contract ExponentialVestingEscrow is IVestingEscrow {
         require(token != IERC20(token_));
         bool transfer_success_ = IERC20(token_).transfer(recipient, IERC20(token_).balanceOf(address(this)));
         require(transfer_success_);
+    }
+
+    /// @notice Transfer tokens that have been sent to this contract by mistake.
+    /// @dev Only callable by address with Global Admin permissions. Cannot be called to withdraw emissions tokens.
+    /// @param tokenAddress_ The address of the token to recover
+    /// @param tokenAmount_ The amount of the token to recover
+    function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
+        require(tokenAddress_ != address(token), "Cannot withdraw the emissions token");
+        IERC20(tokenAddress_).transfer(msg.sender, tokenAmount_);
     }
 }

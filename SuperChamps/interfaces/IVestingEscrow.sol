@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 /// @title An interface for Vesting escrow contracts
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @dev Solidity implementation of https://github.com/LlamaPay/yearn-vesting-escrow interface. Modified to remove un-needed functions.
 interface IVestingEscrow {
     function initialize(

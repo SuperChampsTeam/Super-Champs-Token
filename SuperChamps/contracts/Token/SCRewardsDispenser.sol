@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
@@ -7,28 +7,32 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCSeasonRewards.sol";
 
+/// @title Token Rewards Faucet
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+/// @notice This contract that allows arbitrary addresses to claim reward tokens by providing a valid signature
 contract SCRewardsDispenser {
+    ///@notice The protocol permissions registry
     IPermissionsManager immutable permissions;
+
+    ///@notice The reward token that this contract manages
     IERC20 immutable token;
 
+    ///@notice A set of consumed message signature hashes
+    ///@dev Members of the set are not valid signatures
     mapping(bytes => bool) private consumed_signatures;
-    
-    bool _reentrancy_locked;
-    modifier nonreentrant {
-        require(!_reentrancy_locked);
-        _reentrancy_locked = true;
-        _;
-        _reentrancy_locked = false; 
-    }
 
-    event airdropClaimed(address recipient, uint256 amount);
-
+    ///@notice A function modifier that restricts execution to Global Admins
     modifier isGlobalAdmin() {
         require(
             permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
         _;
     }
 
+    ///@notice Emitted when an account claims reward tokens
+    event rewardClaimed(address recipient, uint256 amount);
+
+    ///@param permissions_ The address of the protocol permissions registry. Must conform to IPermissionsManager.
+    ///@param token_ The address of the rewawd token. Must conform to IERC20.
     constructor(address permissions_, address token_) {
         permissions = IPermissionsManager(permissions_);
         token = IERC20(token_);
@@ -54,8 +58,14 @@ contract SCRewardsDispenser {
         require(permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, _signer), "INVALID SIGNER");
 
         token.transfer(msg.sender, amount_);
+        emit rewardClaimed(msg.sender, amount_);
     }
 
+    /// @notice Used to split a signature into r,s,v components which are required to recover a signing address.
+    /// @param sig_ The signature to split
+    /// @return _r bytes32 The r component
+    /// @return _s bytes32 The s component
+    /// @return _v bytes32 The v component
     function _splitSignature(bytes memory sig_)
         public
         pure
@@ -74,5 +84,13 @@ contract SCRewardsDispenser {
         external isGlobalAdmin
     {
         token.transfer(msg.sender, token.balanceOf(address(this)));
+    }
+
+    /// @notice Transfer tokens that have been sent to this contract by mistake.
+    /// @dev Only callable by address with Global Admin permissions. Cannot be called to withdraw emissions tokens.
+    /// @param tokenAddress_ The address of the token to recover
+    /// @param tokenAmount_ The amount of the token to recover
+    function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
+        IERC20(tokenAddress_).transfer(msg.sender, tokenAmount_);
     }
 }

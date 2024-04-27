@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 

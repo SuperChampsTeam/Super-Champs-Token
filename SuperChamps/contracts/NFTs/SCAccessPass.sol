@@ -1,70 +1,108 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "./SCAccessPassDefaultRenderer.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
 
-//Non-Fungible Soul Bound Token (SBT)
+
+/// @title Non-Fungible Soul Bound Token (SBT) with a small fee and optional metadata renderer.
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+/// @notice The metadata renderer may be updated to add additional functionality to the SBT in the future.
 contract SCAccessPass is ERC721 {
+    /// @notice The metadata renderer contract.
     IERC721MetadataRenderer private _renderer;
 
+    /// @notice The permissions registry.
     IPermissionsManager private immutable _permissions;
+
+    /// @notice Mapping of SBT IDs by address
     mapping(address => uint256) public passholderID;
+
+    /// @notice Mapping of verification status by address
     mapping(address => bool) public _verified;
+
+    /// @notice The price of minting an SBT
     uint256 public price = 0.001 ether;
 
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIdCounter;
+    /// @notice The token ID incrementer counter
+    uint256 private _tokenIdCounter = 1;
 
+    /// @notice Function modifier that requires the caller to have the systems admin permission set in _permissions
     modifier isSystemsAdmin() {
         require(_permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender));
         _;
     }
 
+    /// @notice Initializes a default renderer which returns a static URL that is identical for all tokens.
+    /// @param permissions_ The permissions registry.
+    /// @param name_ The name of the NFT collection.
+    /// @param symbol_ The symbol of the NFT collection.
+    /// @param uri_ The URI to return from the tokenURI() function.
     constructor(
         IPermissionsManager permissions_,
         string memory name_, 
-        string memory symbol_
+        string memory symbol_,
+        string memory uri_
     ) ERC721(name_, symbol_) { 
         _permissions = permissions_;
-        _renderer = new SCAccessPassDefaultRenderer(permissions_, name_, symbol_);
+        _renderer = new SCAccessPassDefaultRenderer(permissions_, name_, symbol_, uri_);
     }
 
+    /// @notice Sets a new renderer contract.
+    /// @dev Only callable by a systems admin.
+    /// @param renderer_ The new renderer contract. Must conform to IERC721MetadataRenderer.
     function setRenderer(address renderer_) external isSystemsAdmin {
         _renderer = IERC721MetadataRenderer(renderer_);
     }
 
+    /// @notice Sets a new price (in ether) for minting SBTs.
+    /// @dev Only callable by a systems admin.
+    /// @param price_ The new price.
     function setPrice(uint256 price_) external isSystemsAdmin {
         price = price_;
     }
 
+    /// @notice Withdraws all minting fees.
+    /// @dev Only callable by a systems admin.
+    /// @param recipient_ The address to withdraw ether to.
     function collect(address payable recipient_) external isSystemsAdmin {
+        require(address(this).balance > 0, "NO ETHER TO WITHDRAW");
         recipient_.transfer(address(this).balance);
     }
 
+    /// @notice Sets the verification status of a passholder.
+    /// @dev Only callable by a systems admin. May be used to set verification status on addresses that do not possess an SBT.
+    /// @param holder_ The token holder whose status is being updated.
     function verifyPassHolder(address holder_, bool status_) external isSystemsAdmin {
         require(_verified[holder_] != status_, "ALREADY SET/UNSET");
         _verified[holder_] = status_;
     }
 
+    /// @notice Mints an SBT.
+    /// @dev Payable function. Requires msg.value to equal price.
     function register() external payable {
         require(passholderID[_msgSender()] == 0, "ALREADY MINTED SBT");
         require(msg.value == price, "INVALID PAYMENT");
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter;
+        _tokenIdCounter++;
         _safeMint(_msgSender(), tokenId);
     }
 
+    /// @notice Queries if a specfied address has minted an SBT.
+    /// @param addr_ The address to query.
+    /// @return _result bool Returns true if the address has minted an SBT or has had their verification status manually set.
     function isPassHolder(address addr_) external view returns (bool _result) {
-        _result = (passholderID[addr_] > 0);
+        _result = (passholderID[addr_] > 0) || isVerified(addr_);
     }
 
-    function isVerified(address addr_) external view returns (bool _result) {
+    /// @notice Queries if a specfied address has been verified.
+    /// @param addr_ The address to query.
+    /// @return _result bool Returns true if the address has had its verification status set to true.
+    function isVerified(address addr_) public view returns (bool _result) {
         _result = _verified[addr_];
     }
 

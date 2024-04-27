@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: None
-// Joyride Games 2024
+// Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
@@ -8,34 +8,45 @@ import "./PermissionsManager.sol";
 import "../Token/ExponentialVestingEscrow.sol";
 import "../Token/SuperChampsToken.sol";
 
+/// @title A deployment helper contract which simplifies the entire initial protocol setup.
+/// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+/// @notice Protocol setup and Token generation are simplified to the deployment of a single contract. 
+/// @dev Additionally contains a function that simplifies the creation of emissions pools.
 contract SCDeploymentHelper {
-    IPermissionsManager immutable private _permissions;
+    ///@notice The protocol permissions registry which is created when this is deployed.
+    IPermissionsManager immutable public permissions;
+
+    ///@notice The protocol token (CHAMP) which is created when this is deployed.
     SuperChampsToken public token;
 
+    ///@notice The total supply of the CHAMP token
     uint256 private constant TOTAL_SUPPLY = 1_000_000_000 ether;
 
-    address private constant SUPER_CHAMPS_MINTER = address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2);
-
-    address private constant JOYRIDE = address(0xa8CAc43b28A7e5F0Ee797741195A920E88B8e7EB); //Joyride BASE Gnosis Safe
+    ///@notice The address of the Base multisig wallet that is controlled by Joyride
+    address private constant JOYRIDE = address(0xa8CAc43b28A7e5F0Ee797741195A920E88B8e7EB);
+    ///@notice The quantity of tokens to mint into the Base multisig wallet that is controlled by Joyride as a retained right.
     uint256 private constant JOYRIDE_ALLOCATION = 320_000_000 ether;
 
+    ///@notice The address of the Base multisig wallet that is controlled by The Super Champs Foundation
     address private constant SUPER_CHAMPS_FOUNDATION = address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2); //need correct address
+    ///@notice The quantity of tokens to mint into the Base multisig wallet that is controlled by The Super Champs Foundation.
     uint256 private constant SUPER_CHAMPS_FOUNDATION_ALLOCATION = 680_000_000 ether;
 
+    ///@notice The numerator of the per second emissions rate of the emissions pool contracts.
+    ///@dev 778 / 100_000_000_000 = 0.00000000778 | 1 - 0.00000000778 = 0.99999999222 | 2_592_000 = 30 days in seconds | 1 - (0.99999999222^2_592_000) = 0.01996379103680036030655598958972 pool contents emissions per 30 days, target is ~2%
     uint256 private constant EMISSIONS_RATE_NUMERATOR = 778;
-    uint256 private constant EMISSIONS_RATE_DIVISOR = 100_000_000_000;
-    //778 / 100_000_000_000 = 0.00000000778
-    //1 - 0.00000000778 = 0.99999999222
-    //2_592_000 = 30 days in seconds
-    //1 - (0.99999999222^2_592_000) = 0.01996379103680036030655598958972 pool contents emissions per 30 days, target is ~2%
 
+    ///@notice The devisor of the per second emissions rate of the emissions pool contracts.
+    uint256 private constant EMISSIONS_RATE_DIVISOR = 100_000_000_000;
+    
+    ///@notice A function modifier that restricts execution to Global Admins.
     modifier isGlobalAdmin() {
-        require(_permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
+        require(permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
         _;
     }
 
     constructor() {
-        _permissions = new PermissionsManager();
+        permissions = new PermissionsManager();
         
         address[] memory _mint_recipients = new address[](2);
         uint256[] memory _mint_quantities = new uint256[](2);
@@ -44,11 +55,11 @@ contract SCDeploymentHelper {
         _mint_quantities[0] = JOYRIDE_ALLOCATION;
         _mint_quantities[1] = SUPER_CHAMPS_FOUNDATION_ALLOCATION;
 
-        token = new SuperChampsToken("Super Champs", "CHAMP", TOTAL_SUPPLY, _permissions);
+        token = new SuperChampsToken("Super Champs", "CHAMP", TOTAL_SUPPLY, permissions);
 
-        _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, JOYRIDE);
-        _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(token));
-        _permissions.addRole(IPermissionsManager.Role.GLOBAL_ADMIN, SUPER_CHAMPS_FOUNDATION);
+        permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, JOYRIDE);
+        permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(token));
+        permissions.addRole(IPermissionsManager.Role.GLOBAL_ADMIN, SUPER_CHAMPS_FOUNDATION);
 
         token.tokenGenerationEvent(_mint_recipients, _mint_quantities);
 
@@ -57,6 +68,11 @@ contract SCDeploymentHelper {
         require(token.balanceOf(SUPER_CHAMPS_FOUNDATION) == SUPER_CHAMPS_FOUNDATION_ALLOCATION, "FOUNDATION MISMATCH");
     }
     
+    ///@notice A helper which initializes an emissions pool that has the specified treasury set as its beneficiary.
+    ///@dev Utilizes the stored EMISSIONS_RATE_NUMERATOR and EMISSIONS_RATE_DIVISOR
+    ///@param treasury_ The beneficiary of the emissions contract.
+    ///@param allocation_ The quantity of tokens to transfer from msg.sender into the emissions pool.
+    ///@param start_time_ The timestamp at which the emissions are to start. May be back dated to create a pool that has some emissions already available.
     function initializeEmmissions(
         address treasury_,
         uint256 allocation_,
@@ -64,8 +80,8 @@ contract SCDeploymentHelper {
     )
         public isGlobalAdmin
     {
-        ExponentialVestingEscrow _emissions = new ExponentialVestingEscrow(address(_permissions));
-        _permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(_emissions));
+        ExponentialVestingEscrow _emissions = new ExponentialVestingEscrow(address(permissions));
+        permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(_emissions));
 
         token.transferFrom(msg.sender, address(this), allocation_);
         token.approve(address(_emissions), allocation_);
@@ -79,5 +95,13 @@ contract SCDeploymentHelper {
             EMISSIONS_RATE_NUMERATOR,
             EMISSIONS_RATE_DIVISOR
         );
+    }
+
+    /// @notice Transfer tokens that have been sent to this contract by mistake.
+    /// @dev Only callable by address with Global Admin permissions. Cannot be called to withdraw emissions tokens.
+    /// @param tokenAddress_ The address of the token to recover
+    /// @param tokenAmount_ The amount of the token to recover
+    function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
+        IERC20(tokenAddress_).transfer(msg.sender, tokenAmount_);
     }
 }
