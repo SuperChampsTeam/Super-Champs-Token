@@ -36,7 +36,7 @@ contract SCAccessPass is ERC721 {
         require(_permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender));
         _;
     }
-
+ 
     /// @notice Initializes a default renderer which returns a static URL that is identical for all tokens.
     /// @param permissions_ The permissions registry.
     /// @param name_ The name of the NFT collection.
@@ -96,7 +96,7 @@ contract SCAccessPass is ERC721 {
 
     /// @notice Queries if a specfied address has minted an SBT.
     /// @param addr_ The address to query.
-    /// @return _result bool Returns true if the address has minted an SBT or has had their verification status manually set.
+    /// @return _result bool Returns true if the address has minted an SBT.
     function isPassHolder(address addr_) external view returns (bool _result) {
         _result = (passholderID[addr_] > 0);
     }
