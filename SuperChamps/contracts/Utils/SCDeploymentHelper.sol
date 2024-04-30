@@ -28,7 +28,7 @@ contract SCDeploymentHelper {
     uint256 private constant JOYRIDE_ALLOCATION = 320_000_000 ether;
 
     ///@notice The address of the Base multisig wallet that is controlled by The Super Champs Foundation
-    address private constant SUPER_CHAMPS_FOUNDATION = address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2); //need correct address
+    address private constant SUPER_CHAMPS_FOUNDATION = address(0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d);//address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2); //need correct address
     ///@notice The quantity of tokens to mint into the Base multisig wallet that is controlled by The Super Champs Foundation.
     uint256 private constant SUPER_CHAMPS_FOUNDATION_ALLOCATION = 680_000_000 ether;
 
@@ -46,6 +46,7 @@ contract SCDeploymentHelper {
     }
 
     constructor() {
+
         permissions = new PermissionsManager();
         
         address[] memory _mint_recipients = new address[](2);
@@ -66,6 +67,14 @@ contract SCDeploymentHelper {
         require(token.totalSupply() == TOTAL_SUPPLY, "SUPPLY MISMATCH");
         require(token.balanceOf(JOYRIDE) == JOYRIDE_ALLOCATION, "JOYRIDE MISMATCH");
         require(token.balanceOf(SUPER_CHAMPS_FOUNDATION) == SUPER_CHAMPS_FOUNDATION_ALLOCATION, "FOUNDATION MISMATCH");
+    }
+
+     function getERC20Address() external view returns (address _result) {
+        _result = address(token);
+    }
+
+    function getPermissionManagerAddress() external view returns (address _result) {
+        _result = address(permissions);
     }
     
     ///@notice A helper which initializes an emissions pool that has the specified treasury set as its beneficiary.

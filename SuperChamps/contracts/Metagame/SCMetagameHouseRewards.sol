@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.24;
 
-import { StakingRewards } from "../../../synthetix/contracts/StakingRewards.sol";
+import { StakingRewards } from "../../../Synthetix/contracts/StakingRewards.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/ISCMetagameRegistry.sol";
 

@@ -88,15 +88,17 @@ contract SCAccessPass is ERC721 {
         require(passholderID[_msgSender()] == 0, "ALREADY MINTED SBT");
         require(msg.value == price, "INVALID PAYMENT");
         uint256 tokenId = _tokenIdCounter;
-        _tokenIdCounter++;
         _safeMint(_msgSender(), tokenId);
+        passholderID[_msgSender()] = tokenId;
+        _tokenIdCounter++;
+
     }
 
     /// @notice Queries if a specfied address has minted an SBT.
     /// @param addr_ The address to query.
     /// @return _result bool Returns true if the address has minted an SBT or has had their verification status manually set.
     function isPassHolder(address addr_) external view returns (bool _result) {
-        _result = (passholderID[addr_] > 0) || isVerified(addr_);
+        _result = (passholderID[addr_] > 0);
     }
 
     /// @notice Queries if a specfied address has been verified.

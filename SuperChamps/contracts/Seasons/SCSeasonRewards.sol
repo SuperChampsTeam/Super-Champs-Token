@@ -91,7 +91,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         uint256 timestamp_
     ) public pure returns(bool _active) 
     {
-        _active = season_.end_time >= timestamp_ && timestamp_ < season_.start_time;
+        _active = season_.end_time >= timestamp_ && timestamp_ > season_.start_time;
     }
 
     ///@notice Queries the finalized status of a season.
