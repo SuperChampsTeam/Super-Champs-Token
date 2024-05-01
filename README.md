@@ -1,32 +1,32 @@
 # Super Champs Token Project using truffle
-nvm install v16.20.0
-nvm use
-npm install --save-dev truffle
-npm install --save-dev ganache-cli
-npm install
-npx ganache-cli --deterministic --db ./ganache_db   #starts blockchain
-Change addresses in 2_deploy.js
-npx truffle compile
-npx truffle migrate --network development   #deploy on local development blockchain  #other flags: --from <caller_address>
-npx truffle exec --network development ./scripts/index.js  #interact with contract using script
-npx truffle console --network development #interact with contract from console
-
-#More on interacting by console or programetically can be found at https://docs.openzeppelin.com/learn/deploying-and-interacting
-
-#Initial project setup was done by following https://docs.openzeppelin.com/learn/setting-up-a-node-project
-
-# Super Champs Token Project deploy via metamask
-Change addresses in 2_deploy.js . For ease, i put superchampFoundationAddress as same as contract deployer address.
-npx truffle compile
-npx truffle dashboard #open truffle dashboard which help in signing transactions
-npx truffle migrate --network dashboard #deploy
-
-
-# Debugging Solidity with Remix GUI
-npm install -g remixd
-remixd -s ./super-champs-token/SuperChamps/ --remix-ide https://remix.ethereum.org
-Read n follow https://medium.com/authereum/debugging-solidity-with-a-gui-remix-and-ganache-c6c16488fcfd
-
+nvm install v16.20.0 <br />
+nvm use <br />
+npm install --save-dev truffle <br />
+npm install --save-dev ganache-cli <br />
+npm install <br />
+npx ganache-cli --deterministic --db ./ganache_db   #starts blockchain <br />
+Change addresses in 2_deploy.js <br />
+npx truffle compile <br />
+npx truffle migrate --network development   #deploy on local development blockchain  #other flags: --from <caller_address> <br />
+npx truffle exec --network development ./scripts/index.js  #interact with contract using script <br />
+npx truffle console --network development #interact with contract from console <br />
+<br />
+#More on interacting by console or programetically can be found at https://docs.openzeppelin.com/learn/deploying-and-interacting <br />
+<br />
+#Initial project setup was done by following https://docs.openzeppelin.com/learn/setting-up-a-node-project <br />
+<br />
+# Super Champs Token Project deploy via metamask <br />
+Change addresses in 2_deploy.js . For ease, i put superchampFoundationAddress as same as contract deployer address. <br />
+npx truffle compile <br />
+npx truffle dashboard #open truffle dashboard which help in signing transactions <br />
+npx truffle migrate --network dashboard #deploy <br />
+<br />
+<br />
+# Debugging Solidity with Remix GUI <br />
+npm install -g remixd <br />
+remixd -s ./super-champs-token/SuperChamps/ --remix-ide https://remix.ethereum.org <br />
+Read n follow https://medium.com/authereum/debugging-solidity-with-a-gui-remix-and-ganache-c6c16488fcfd <br />
+<br />
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
