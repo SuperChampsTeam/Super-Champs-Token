@@ -5,6 +5,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./SCAccessPassDefaultRenderer.sol";
+import "../../interfaces/ISCAccessPass.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
 
@@ -12,7 +13,7 @@ import "../../interfaces/IERC721MetadataRenderer.sol";
 /// @title Non-Fungible Soul Bound Token (SBT) with a small fee and optional metadata renderer.
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice The metadata renderer may be updated to add additional functionality to the SBT in the future.
-contract SCAccessPass is ERC721 {
+contract SCAccessPass is ERC721, ISCAccessPass {
     /// @notice The metadata renderer contract.
     IERC721MetadataRenderer private _renderer;
 
@@ -36,7 +37,7 @@ contract SCAccessPass is ERC721 {
         require(_permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender));
         _;
     }
- 
+
     /// @notice Initializes a default renderer which returns a static URL that is identical for all tokens.
     /// @param permissions_ The permissions registry.
     /// @param name_ The name of the NFT collection.
@@ -71,7 +72,8 @@ contract SCAccessPass is ERC721 {
     /// @param recipient_ The address to withdraw ether to.
     function collect(address payable recipient_) external isSystemsAdmin {
         require(address(this).balance > 0, "NO ETHER TO WITHDRAW");
-        recipient_.transfer(address(this).balance);
+        (bool sent, bytes memory data) = recipient_.call{value: address(this).balance}("");
+        require(sent, "Failed to send Ether");
     }
 
     /// @notice Sets the verification status of a passholder.
@@ -91,14 +93,34 @@ contract SCAccessPass is ERC721 {
         _safeMint(_msgSender(), tokenId);
         passholderID[_msgSender()] = tokenId;
         _tokenIdCounter++;
+    }
 
+    /// @notice Mints an SBT to a recipient without requiring payment.
+    /// @dev Callable only by Systems Admin.
+    /// @param recipient_ The token recipient.
+    function freeRegister(address recipient_) external isSystemsAdmin {
+        require(passholderID[recipient_] == 0, "ALREADY MINTED SBT");
+        uint256 tokenId = _tokenIdCounter;
+        _safeMint(recipient_, tokenId);
+        passholderID[recipient_] = tokenId;
+        _tokenIdCounter++;
+    }
+
+    /// @notice Burns an SBT from a holder. May be used for future metagame functionality.
+    /// @dev Callable only by Systems Admin.
+    /// @param holder_ The token holder.
+    function burnToken(address holder_) external isSystemsAdmin {
+        uint256 _tokenId = passholderID[holder_];
+        require(_tokenId != 0, "ALREADY MINTED SBT");
+        _burn(_tokenId);
+        passholderID[holder_] = 0;
     }
 
     /// @notice Queries if a specfied address has minted an SBT.
     /// @param addr_ The address to query.
-    /// @return _result bool Returns true if the address has minted an SBT.
+    /// @return _result bool Returns true if the address has minted an SBT .
     function isPassHolder(address addr_) external view returns (bool _result) {
-        _result = (passholderID[addr_] > 0);
+        _result = passholderID[addr_] > 0;
     }
 
     /// @notice Queries if a specfied address has been verified.

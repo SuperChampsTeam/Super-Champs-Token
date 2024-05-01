@@ -6,6 +6,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCMetagameRegistry.sol";
+import "../../interfaces/ISCAccessPass.sol";
 import "./SCMetagameHouseRewards.sol";
 
 /// @title Manager for "House Cup" token metagame
@@ -31,6 +32,9 @@ contract SCMetagameHouses {
 
     /// @notice The emissions token.
     IERC20 public immutable token;
+
+    /// @notice The access pass SBT
+    ISCAccessPass public access_pass;
     
     /// @notice The treasury that this contract pulls emissions tokens from.
     /// @dev An allowance must be set on the emissions token contract that permits this contract access to the treasury's tokens.
@@ -74,16 +78,19 @@ contract SCMetagameHouses {
     /// @param token_ Address of the emissions token.
     /// @param metadata_ Address of the protocol metadata registry. Must conform to ISCMetagameRegistry.
     /// @param treasury_ Address of the treasury which holds emissions tokens for use by the House Cup metagame.
+    /// @param access_pass_ Address of the protocol access pass SBT
     constructor(
         address permissions_,
         address token_,
         address metadata_,
-        address treasury_
+        address treasury_,
+        address access_pass_
     ) {
         permissions = IPermissionsManager(permissions_);
         token = IERC20(token_);
         metadata = ISCMetagameRegistry(metadata_);
         treasury = treasury_;
+        access_pass = ISCAccessPass(access_pass_);
     }
 
     /// @notice Assigns a new treasury from which the metagame system draws token rewards.
@@ -102,7 +109,8 @@ contract SCMetagameHouses {
         house_rewards[house_name_] = new SCMetagameHouseRewards(
             address(token),
             address(metadata),
-            house_name_
+            house_name_,
+            address(access_pass)
         );
 
         houses.push(house_name_);

@@ -6,6 +6,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCSeasonRewards.sol";
+import "../../interfaces/ISCAccessPass.sol";
 
 /// @title Manager for the seasonal player rewards program.
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
@@ -21,6 +22,9 @@ contract SCSeasonRewards is ISCSeasonRewards{
 
     ///@notice The traeasury from which Seasons pull their reward tokens.
     address treasury;
+
+    /// @notice The access pass SBT
+    ISCAccessPass public access_pass;
 
     ///@notice A list of seasons. A season's ID is its index in the list.
     ISCSeasonRewards.Season[] public seasons;
@@ -54,10 +58,17 @@ contract SCSeasonRewards is ISCSeasonRewards{
     ///@param permissions_ The address of the protocol permissions registry. Must conform to IPermissionsManager.
     ///@param token_ The address of the reward token. (The CHAMP token)
     ///@param treasury_ The address of the account/contract that the Seasons reward system pulls reward tokens from.
-    constructor(address permissions_, address token_, address treasury_) {
+    /// @param access_pass_ Address of the protocol access pass SBT
+    constructor(
+        address permissions_, 
+        address token_, 
+        address treasury_,
+        address access_pass_) 
+    {
         permissions = IPermissionsManager(permissions_);
         token = IERC20(token_);
         treasury = treasury_;
+        access_pass = ISCAccessPass(access_pass_);
     }
 
     ///@notice Updates the address of the account/contract that the Seasons reward system pulls reward tokens from.
@@ -265,7 +276,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         _season.total_score = _total_score;
     }
 
-    ///@notice Claim tokens rewarded to msg.sender in the specified season.
+    ///@notice Claim tokens rewarded to msg.sender in the specified season. Must have a verified Access Pass.
     ///@dev Callable only on seasons which have been finalized and whose claim duration has not elapsed.
     ///@param season_id_ The season to claim reward tokens from.
     function claimReward(
@@ -273,6 +284,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
     ) external
     {
         require(claimed_rewards[season_id_][msg.sender] == 0, "REWARD CLAIMED");
+        require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
 
         Season storage _season = seasons[season_id_];
 
