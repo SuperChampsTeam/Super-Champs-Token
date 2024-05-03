@@ -291,6 +291,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         require(isSeasonClaimingActive(_season, block.timestamp), "SEASON_CLAIM_ENDED");
 
         uint256 _score = season_scores[season_id_][msg.sender];
+        require(_score>0, "MUST HAVE A NON ZERO SCORE");
         uint256 _reward = (_season.reward_amount * _score) / _season.total_score;
 
         bool transfer_success = token.transfer(msg.sender, _reward);
@@ -298,6 +299,25 @@ contract SCSeasonRewards is ISCSeasonRewards{
 
         _season.remaining_reward_amount -= uint128(_reward);
         claimed_rewards[season_id_][msg.sender] = _reward;
+    }
+
+    ///@notice get tokens to be rewarded to msg.sender in the specified season. Must have a verified Access Pass.
+    ///@dev Callable only on seasons which have been finalized and whose claim duration has not elapsed.
+    ///@param season_id_ The season to get reward tokens from.
+    function getReward(
+        uint256 season_id_
+    ) external view returns(uint256 _reward) 
+    {
+        require(claimed_rewards[season_id_][msg.sender] == 0, "REWARD CLAIMED");
+        require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
+
+        Season storage _season = seasons[season_id_];
+
+        require(isSeasonClaimingActive(_season, block.timestamp), "SEASON_CLAIM_ENDED");
+
+        uint256 _score = season_scores[season_id_][msg.sender];
+        require(_score>0, "MUST HAVE A NON ZERO SCORE");
+        _reward = (_season.reward_amount * _score) / _season.total_score;
     }
 
     ///@notice Constructs a message hash from a player score update request payload.

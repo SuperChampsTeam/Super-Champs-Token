@@ -54,7 +54,7 @@ module.exports = async function (deployer) {
   const txDetails = await web3.eth.getTransaction(emissionReceipt.tx);
   console.log('scDeploymentHelper.initializeEmission tx details:' + txDetails);
 
-  await deployer.deploy(SCSeasonRewards, pAddress, tokenAddress, treasuryForSeason);
+  await deployer.deploy(SCSeasonRewards, pAddress, tokenAddress, treasuryForSeason, scAccessPass.address);
   const scSeasonRewards = await SCSeasonRewards.deployed();
   console.log("scSeasonRewards deployed ");
 
