@@ -12,7 +12,6 @@ interface ISCSeasonRewards {
         uint256 end_time;
         uint256 reward_amount;
         uint256 remaining_reward_amount;
-        uint256 total_score;
         uint256 claim_end_time;   //Last time claim is available
     }
 
@@ -30,24 +29,19 @@ interface ISCSeasonRewards {
         uint256 claim_duration
     ) external;
 
-    function reportScore(
-        address player_,
-        uint256 season_id_,
-        uint256 score_,
-        uint256 signature_expiry_ts_,
-        uint256 timestamp_,
-        bytes memory signature_
-    ) external;
-
-    function reportScores(
+    function reportRewards(
         uint256 season_id_,
         address[] calldata players_,
-        uint256[] calldata scores_
+        uint256[] calldata rewards_
     ) external;
 
     function claimReward(
         uint256 season_id_
     ) external;
+
+    function getClaimableReward(
+        uint256 season_id_
+    ) external view returns(uint256); 
 
     function revokeUnclaimedReward(
         uint256 id_

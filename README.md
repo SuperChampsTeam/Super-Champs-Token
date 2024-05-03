@@ -3,6 +3,8 @@ nvm install v16.20.0 <br />
 nvm use <br />
 npm install --save-dev truffle <br />
 npm install --save-dev ganache-cli <br />
+npm install @truffle/hdwallet-provider <br />
+npm install @openzeppelin/contracts <br />
 npm install <br />
 npx ganache-cli --deterministic --db ./ganache_db   #starts blockchain <br />
 Change addresses in 2_deploy.js <br />

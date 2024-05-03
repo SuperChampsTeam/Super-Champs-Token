@@ -30,7 +30,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
     ISCSeasonRewards.Season[] public seasons;
 
     ///@notice A mapping of scores reported for each user by address for each season by ID.
-    mapping(uint256 => mapping(address => uint256)) public season_scores;
+    mapping(uint256 => mapping(address => uint256)) public season_rewards;
 
     ///@notice A mapping of quantity of tokens claimed for each user by address for each season by ID.
     mapping(uint256 => mapping(address => uint256)) public claimed_rewards;
@@ -197,83 +197,43 @@ contract SCSeasonRewards is ISCSeasonRewards{
         require(_season.start_time > 0, "SEASON NOT FOUND");
         require(isSeasonEnded(_season, block.timestamp), "SEASON_NOT_ENDED");
         require(!isSeasonFinalized(_season), "SEASON_FINALIZED");
+        require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT DOESN'T MATCH");
 
         bool transfer_success = token.transferFrom(treasury, address(this), reward_amount_);
         require(transfer_success, "FAILED TRANSFER");
-
-        _season.reward_amount = uint128(reward_amount_);
-        _season.remaining_reward_amount = uint128(reward_amount_);
+        
+        _season.remaining_reward_amount = reward_amount_;
         _season.claim_end_time = block.timestamp + claim_duration_;
-    }
-
-    ///@notice Reports an individual player's score for the specified season.
-    ///@dev Callable by anyone IF a valid signature_ is provided. Callable by Systems Admins IF signature_ is "".
-    ///@param player_ The player address.
-    ///@param season_id_ The ID of the season.
-    ///@param score_ The player's total current score. (Current at timestamp_, if a signature is provided.
-    ///@param signature_expiry_ts_ The validity time of the provided signature.  0 If being called by a systems admin.
-    ///@param timestamp_ The time at which this signature was generated. 0 If being called by a systems admin.
-    ///@param signature_ The signature used to test this function calls validity. "" If being called by a systems admin.
-    function reportScore(
-        address player_,
-        uint256 season_id_,
-        uint256 score_,
-        uint256 signature_expiry_ts_,
-        uint256 timestamp_,
-        bytes memory signature_
-    ) external 
-    {
-        Season storage _season = seasons[season_id_];
-        require(_season.start_time > 0, "SEASON NOT FOUND");
-        require(!isSeasonFinalized(_season), "SEASON FINALIZED");
-
-        if(signature_.length > 0) {
-            require(signature_expiry_ts_ > block.timestamp, "INVALID EXPIRY");
-            require(player_last_signature_timestamp[player_] < timestamp_, "CONSUMED NONCE");
-            require(!consumed_signatures[signature_], "CONSUMED SIGNATURE");
-            
-            player_last_signature_timestamp[player_] = timestamp_;
-            consumed_signatures[signature_] = true;
-
-            bytes32 _messageHash = keccak256(
-                abi.encode(player_, season_id_, score_, signature_expiry_ts_, timestamp_));
-            _messageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _messageHash));
-            
-            (bytes32 _r, bytes32 _s, uint8 _v) = _splitSignature(signature_);
-            address _signer = ecrecover(_messageHash, _v, _r, _s);
-            require(permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, _signer), "INVALID SIGNER");
-        } else {
-            require(permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender), "NOT AUTHORIZED");
-        }
-
-        _season.total_score = (_season.total_score - season_scores[season_id_][player_]) + score_;
-        season_scores[season_id_][player_] = score_;
     }
 
     ///@notice Reports an list of players' scores for the specified season.
     ///@dev Callable only by Systems Admins.
     ///@param season_id_ The ID of the season.
     ///@param players_ The list of player addresses.
-    ///@param scores_ The list of player's total current score.
-    function reportScores(
+    ///@param rewards_ The list of player's total current rewards.
+    function reportRewards(
         uint256 season_id_,
         address[] calldata players_,
-        uint256[] calldata scores_
+        uint256[] calldata rewards_
     ) external isQuestSystem
     {
-        require(players_.length == scores_.length, "ARRAYS  MISMATCH");
+        require(players_.length == rewards_.length, "ARRAYS  MISMATCH");
 
         Season storage _season = seasons[season_id_];
         require(_season.start_time > 0, "SEASON NOT FOUND");
         require(!isSeasonFinalized(_season), "SEASON FINALIZED");
         
-        uint256 _total_score = _season.total_score;
+        uint256 _increase = 0;
+        uint256 _decrease = 0;
+
         for (uint256 i = 0; i < players_.length; i++) {
-            _total_score = (_total_score - season_scores[season_id_][players_[i]]) + scores_[i];
-            season_scores[season_id_][players_[i]] = scores_[i];
+            _increase += rewards_[i];
+            _decrease += season_rewards[season_id_][players_[i]];
+            season_rewards[season_id_][players_[i]] = rewards_[i];
         }
 
-        _season.total_score = _total_score;
+        _season.reward_amount += _increase;
+        _season.reward_amount -= _decrease;
     }
 
     ///@notice Claim tokens rewarded to msg.sender in the specified season. Must have a verified Access Pass.
@@ -287,37 +247,45 @@ contract SCSeasonRewards is ISCSeasonRewards{
         require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
 
         Season storage _season = seasons[season_id_];
-
         require(isSeasonClaimingActive(_season, block.timestamp), "SEASON_CLAIM_ENDED");
 
-        uint256 _score = season_scores[season_id_][msg.sender];
-        require(_score>0, "MUST HAVE A NON ZERO SCORE");
-        uint256 _reward = (_season.reward_amount * _score) / _season.total_score;
+        uint256 _reward = _getReward(season_id_, msg.sender);
+        require(_reward > 0, "MUST HAVE A NON ZERO REWARD");
 
         bool transfer_success = token.transfer(msg.sender, _reward);
         require(transfer_success, "FAILED TRANSFER");
 
-        _season.remaining_reward_amount -= uint128(_reward);
+        _season.remaining_reward_amount -= _reward;
         claimed_rewards[season_id_][msg.sender] = _reward;
     }
 
-    ///@notice get tokens to be rewarded to msg.sender in the specified season. Must have a verified Access Pass.
-    ///@dev Callable only on seasons which have been finalized and whose claim duration has not elapsed.
+    ///@notice get reward tokens claimable by a player in the specified season.
     ///@param season_id_ The season to get reward tokens from.
-    function getReward(
+    function getClaimableReward(
         uint256 season_id_
-    ) external view returns(uint256 _reward) 
+    ) public view returns(uint256 _reward) 
     {
-        require(claimed_rewards[season_id_][msg.sender] == 0, "REWARD CLAIMED");
-        require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
-
+        _reward = _getReward(season_id_, msg.sender);
         Season storage _season = seasons[season_id_];
+        if( !isSeasonClaimingActive(_season, block.timestamp) || 
+            !access_pass.isVerified(msg.sender)) 
+        {
+            _reward = 0;
+        }
+    }
 
-        require(isSeasonClaimingActive(_season, block.timestamp), "SEASON_CLAIM_ENDED");
-
-        uint256 _score = season_scores[season_id_][msg.sender];
-        require(_score>0, "MUST HAVE A NON ZERO SCORE");
-        _reward = (_season.reward_amount * _score) / _season.total_score;
+    ///@notice get tokens rewarded to a player in the specified season, less their claimed tokens.
+    ///@param season_id_ The season to get reward tokens from.
+    ///@param player_ The address of the player whose rewards are being queried.
+    function _getReward(
+        uint256 season_id_,
+        address player_
+    ) public view returns(uint256) 
+    {
+        uint256 _reward = season_rewards[season_id_][player_];
+        uint256 _claimed = claimed_rewards[season_id_][player_];
+        
+        return _reward - _claimed;
     }
 
     ///@notice Constructs a message hash from a player score update request payload.

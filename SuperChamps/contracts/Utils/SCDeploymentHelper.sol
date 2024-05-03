@@ -87,7 +87,7 @@ contract SCDeploymentHelper {
         uint256 allocation_,
         uint256 start_time_
     )
-        public isGlobalAdmin
+        public isGlobalAdmin returns (address)
     {
         ExponentialVestingEscrow _emissions = new ExponentialVestingEscrow(address(permissions));
         permissions.addRole(IPermissionsManager.Role.TRANSFER_ADMIN, address(_emissions));
@@ -104,6 +104,7 @@ contract SCDeploymentHelper {
             EMISSIONS_RATE_NUMERATOR,
             EMISSIONS_RATE_DIVISOR
         );
+        return address(_emissions);
     }
 
     /// @notice Transfer tokens that have been sent to this contract by mistake.
