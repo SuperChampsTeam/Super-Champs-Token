@@ -39,13 +39,16 @@ module.exports = async function (deployer) {
   const permissionsManager = await PermissionsManager.at(pAddress);
   console.log("permissionsManager")
   const receipt = await permissionsManager.addRole(4, sysAdminKmsAddress, { from: superchampFoundationAddress }) //    await permissionsManagerInstance.addRole(role, accountToAdd, { from: accounts[0] }); // Use appropriate account as the sender
-  console.log("permissionsManager success")
+  console.log("permissionsManager sys admin success");
 
+  const receipt1 = await permissionsManager.addRole(3, sysAdminKmsAddress, { from: superchampFoundationAddress }) //    await permissionsManagerInstance.addRole(role, accountToAdd, { from: accounts[0] }); // Use appropriate account as the sender
+  console.log("permissionsManager transfer admin success");
+  
   const transferLockERC20 = await SuperChampsToken.at(tokenAddress);
   console.log("transferLockERC20");
   var BN = web3.utils.BN;
   const approveAmount = new BN('230000000000000000000000000');
-  const receipt1 = await transferLockERC20.approve(scDeploymentHelperAddress, approveAmount, { from: superchampFoundationAddress }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
+  const receipt2 = await transferLockERC20.approve(scDeploymentHelperAddress, approveAmount, { from: superchampFoundationAddress }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
   console.log("transferLockERC20 success")
 
 
@@ -76,6 +79,11 @@ module.exports = async function (deployer) {
   const claimedAmountTxDetails = await web3.eth.getTransaction(claimedAmountTx.tx);
   console.log('claimedAmountTx tx details:');
   console.log(claimedAmountTxDetails);
+
+
+  const receipt3 = await transferLockERC20.approve(scSeasonRewards, emissionATreasuryAmount, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
+  console.log("transferLockERC20 receipt3 success")
+
 
   //todo : implement from `FACTORY.initializeEmmissions is called by Foundation Multisig for Metagame system` part of  https://docs.google.com/document/d/1uMl_cJhMeJL0ND6i7eMOf73JtRQ5qnMTpeyNra343yI/edit#heading=h.gll6bjs55xo8
 };
