@@ -82,8 +82,11 @@ module.exports = async function (deployer) {
 
 
   const receipt3 = await transferLockERC20.approve(scSeasonRewards.address, emissionATreasury, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
-  console.log("transferLockERC20 receipt3 success")
+  console.log("transferLockERC20 approve receipt3 success to contract scSeasonRewards")
 
+
+  const receipt4 = await permissionsManager.addRole(3, scSeasonRewards.address, { from: superchampFoundationAddress }) //    await permissionsManagerInstance.addRole(role, accountToAdd, { from: accounts[0] }); // Use appropriate account as the sender
+  console.log("permissionsManager transfer admin success to contract scSeasonRewards");
 
   //todo : implement from `FACTORY.initializeEmmissions is called by Foundation Multisig for Metagame system` part of  https://docs.google.com/document/d/1uMl_cJhMeJL0ND6i7eMOf73JtRQ5qnMTpeyNra343yI/edit#heading=h.gll6bjs55xo8
 };
