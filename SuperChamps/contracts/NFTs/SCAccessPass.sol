@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: None
+getMetagameMultiplier// SPDX-License-Identifier: None
 // Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
@@ -26,10 +26,13 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @notice Mapping of verification status by address
     mapping(address => bool) public _verified;
 
+    /// @notice Mapping of metagame multiplier basis points by address
+    mapping(address => uint256) public metagame_multiplier;
+
     /// @notice The price of minting an SBT
     uint256 public price = 0.001 ether;
 
-    /// @notice The token ID incrementer counter
+    /// @notice The token ID counter
     uint256 private _tokenIdCounter = 1;
 
     /// @notice Function modifier that requires the caller to have the systems admin permission set in _permissions
@@ -51,6 +54,27 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     ) ERC721(name_, symbol_) { 
         _permissions = permissions_;
         _renderer = new SCAccessPassDefaultRenderer(permissions_, name_, symbol_, uri_);
+    }
+
+    
+
+    /// @notice Queries metagame multiplier of a specfied address's pass. 
+    /// @param addr_ The address to query.
+    /// @return _result uint256 Returns the rank of the user's access pass. Result is in basis points. 
+    function getMetagameMultiplier(address addr_) external view returns (uint256 _multiplier) {
+        _multiplier = metagame_multiplier[addr_];
+	if(_multiplier == 0) 
+	{
+	    _multiplier = 10000;
+        }
+    }
+
+    /// @notice Sets a player's metagame multiplier
+    /// @dev Only callable by a systems admin.
+    /// @param addr_ The address of the player.
+    /// @param mult_bp_ Basis points of multiplier
+    function setMetagameMultiplier(address addr_, uint256 mult_bp_) external isSystemsAdmin {
+        metagame_multiplier[addr_] = mult_bp_;
     }
 
     /// @notice Sets a new renderer contract.

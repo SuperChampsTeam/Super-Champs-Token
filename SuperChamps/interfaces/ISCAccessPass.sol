@@ -15,4 +15,9 @@ interface ISCAccessPass {
     /// @param addr_ The address to query.
     /// @return _result bool Returns true if the address has had its verification status set to true.
     function isVerified(address addr_) external view returns (bool);
+
+    /// @notice Queries rank of a specfied address's pass.
+    /// @param addr_ The address to query.
+    /// @return _result uint256 Returns the rank of the user's access pass.
+    function getMetagameMultiplier(address addr_) external view returns (uint256);
 }

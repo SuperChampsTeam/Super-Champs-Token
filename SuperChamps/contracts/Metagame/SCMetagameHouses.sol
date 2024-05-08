@@ -113,6 +113,8 @@ contract SCMetagameHouses {
             address(access_pass)
         );
 
+        house_rewards[house_name_].setRewardsDistribution(address(this));
+
         houses.push(house_name_);
     }
 
@@ -225,7 +227,7 @@ contract SCMetagameHouses {
     /// @param tokenAddress_ The address of the token to recover
     /// @param tokenAmount_ The amount of the token to recover
     function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
-        require(tokenAddress_ != address(token), "Cannot withdraw the emissions token");
+        require(tokenAddress_ != address(token), "CANT WITHDRAW CHAMP");
         IERC20(tokenAddress_).transfer(msg.sender, tokenAmount_);
     }
 

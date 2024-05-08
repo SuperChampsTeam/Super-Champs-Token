@@ -26,6 +26,9 @@ contract SCMetagameHouseRewards is StakingRewards {
 
     /// @dev Hash of the name of the house, used for comparison with the house names retrieved from the metadata registry
     bytes32 house_hash;
+
+    /// @dev The recorded multipliers (if any) of users who have deposited tokens.
+    mapping(address => uint256) internal _multiplier_basis_points;
     
     /// @param token_ Address of the emissions token.
     /// @param metadata_ Address of the protocol metadata registry. Must conform to ISCMetagameRegistry.
@@ -50,10 +53,59 @@ contract SCMetagameHouseRewards is StakingRewards {
         require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED ACCESS PASS");
         require(amount_ > 0, "CANNOT STAKE 0");
 
-        _totalSupply = _totalSupply + amount_;
+        uint256 _old_multiplier_basis_points = _multiplier_basis_points[msg.sender];
+        _multiplier_basis_points[msg.sender] = access_pass.getMetagameMultiplier(msg.sender);
+
+        _totalSupply -= _balances[msg.sender] * _old_multiplier_basis_points / 10000;
+        _totalSupply = _totalSupply + ((_balances[msg.sender]+amount_) * _multiplier_basis_points[msg.sender] / 10000);
         _balances[msg.sender] = _balances[msg.sender] + amount_;
         stakingToken.transferFrom(msg.sender, address(this), amount_);
 
         emit Staked(msg.sender, amount_);
+    }
+
+    function updateMultiplier(address addr_) internal returns (uint256 _mult_bp)
+    {
+	    _mult_bp = access_pass.getMetagameMultiplier(addr_);
+
+	    if(_mult_bp != _multiplier_basis_points[addr_])
+        {
+            uint256 _old_multiplier = _multiplier_basis_points[addr_];
+            _multiplier_basis_points[addr_] = _mult_bp;
+            _totalSupply = _totalSupply - ((_balances[addr_] * _old_multiplier) / 10000);
+            _totalSupply = _totalSupply + ((_balances[addr_] * _mult_bp) / 10000);
+        }
+    }
+
+    function withdraw(uint256 amount) public override nonReentrant updateReward(msg.sender) {
+        require(amount > 0, "Cannot withdraw 0");
+
+	    uint256 _mult_bp = updateMultiplier(msg.sender);
+	
+        _totalSupply = _totalSupply - ((amount * _mult_bp) / 10000);
+        _balances[msg.sender] = _balances[msg.sender] - amount;
+        stakingToken.transfer(msg.sender, amount);
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    function earned(address account) public override view returns (uint256 _earned) {
+        _earned = (
+	    	(( _multiplier_basis_points[account] * _balances[account]) / 10000) * 
+	    	(rewardPerToken() - userRewardPerTokenPaid[account])
+	    ) / 1e18 + 
+	    rewards[account];
+    }
+
+    modifier updateReward(address account) override {
+	    updateMultiplier(msg.sender);
+        
+	    rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+        _;
     }
 }
