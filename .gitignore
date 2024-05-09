@@ -1,5 +1,8 @@
 .deps
+.states
 contracts/SuperChamps/artifacts/*
 contracts/synthetix/contracts/artifacts/*
 contracts/synthetix/contracts/interfaces/artifacts/*
-*.json
+*/*/*/artifacts/*
+*/*/artifacts/*
+*.DS_Store
