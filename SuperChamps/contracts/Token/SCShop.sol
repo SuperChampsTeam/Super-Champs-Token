@@ -4,6 +4,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../interfaces/IPermissionsManager.sol";
 
 /// @title Shop Sales Manager
@@ -42,22 +43,44 @@ contract SCShop {
     ///@notice Transfers tokens from one user to a "till" account.
     ///@dev Purpose is to emit a saleReceipt event and to allow transfer of tokens from user wallets by the Shop system before token unlock.
     ///@param buyer_ Address that is sending tokens.
-    ///@param till_ Address that is receiving the tokens.
+    ///@param recipient_ Address that is receiving the tokens.
     ///@param amount_ The quantity of tokens sent.
     ///@param subsystem_ The string ID of the Shop subsystem calling this function.
     ///@param metadata_ An optional string parameter that may be populated with arbitrary metadata.
     function saleTransaction (
         address buyer_,
-        address till_,
+        address recipient_,
         uint256 amount_, 
-        string calldata subsystem_, 
+        string memory subsystem_, 
         string calldata metadata_
     ) public isSalesAdmin
     {
-        bool success = token.transferFrom(buyer_, till_, amount_);
+        bool success = token.transferFrom(buyer_, recipient_, amount_);
         require(success);
 
         emit saleReceipt(buyer_, amount_, subsystem_, metadata_);
+    }
+
+    ///@notice Transfers tokens from one user to a "till" account.
+    ///@dev Purpose is to emit a saleReceipt event and to allow transfer of tokens from user wallets by the Shop system before token unlock.
+    ///@param buyer_ Address that is sending tokens.
+    ///@param seller_ Address that is receiving the tokens.
+    ///@param price_ The quantity of tokens sent.
+    ///@param token_id_ The token ID of the NFT being sold.
+    ///@param sale_metadata_ An optional string parameter that may be populated with arbitrary metadata.
+    ///@param sale_metadata_ An optional bytes parameter that is fed to the onERC721Received(...) call, post transfer to a valid receiver contract.
+    function nftChampTrade (
+        address buyer_,
+        address seller_,
+        uint256 price_,
+        IERC721 nft_,
+        uint256 token_id_,
+        string calldata sale_metadata_,
+        bytes calldata transfer_metadata_
+    ) public isSalesAdmin
+    {
+        saleTransaction(buyer_, seller_, price_, "NFT", sale_metadata_);
+        nft_.safeTransferFrom(seller_, buyer_, token_id_, transfer_metadata_);
     }
 
     /// @notice Transfer tokens that have been sent to this contract by mistake.

@@ -1,10 +1,10 @@
-getMetagameMultiplier// SPDX-License-Identifier: None
+// SPDX-License-Identifier: None
 // Super Champs Foundation 2024
 
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./SCAccessPassDefaultRenderer.sol";
+import "./SCDefaultRenderer.sol";
 import "../../interfaces/ISCAccessPass.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
@@ -53,19 +53,17 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         string memory uri_
     ) ERC721(name_, symbol_) { 
         _permissions = permissions_;
-        _renderer = new SCAccessPassDefaultRenderer(permissions_, name_, symbol_, uri_);
+        _renderer = new SCDefaultRenderer(permissions_, name_, symbol_, uri_);
     }
-
-    
 
     /// @notice Queries metagame multiplier of a specfied address's pass. 
     /// @param addr_ The address to query.
-    /// @return _result uint256 Returns the rank of the user's access pass. Result is in basis points. 
+    /// @return _multiplier uint256 Returns the rank of the user's access pass. Result is in basis points. 
     function getMetagameMultiplier(address addr_) external view returns (uint256 _multiplier) {
         _multiplier = metagame_multiplier[addr_];
-	if(_multiplier == 0) 
-	{
-	    _multiplier = 10000;
+	    if(_multiplier == 0) 
+	    {
+	        _multiplier = 10000;
         }
     }
 
