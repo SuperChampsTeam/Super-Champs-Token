@@ -14,7 +14,7 @@ import "../../interfaces/IERC721MetadataRenderer.sol";
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @dev Token transfers are restricted to addresses that have the Transer Admin permission until the CHAMP token is unlocked.
 /// @notice This is a standard ERC721 token contract that restricts token transfers before the protocol token is unlocked. Trades still possible via Shop/Marketplace system, but limited to sales denominated in CHAMP.
-contract SuperChampsToken is ERC721 {
+contract SCTempLockedNFT is ERC721 {
     /// @notice The metadata renderer contract.
     IERC721MetadataRenderer private _renderer;
 
