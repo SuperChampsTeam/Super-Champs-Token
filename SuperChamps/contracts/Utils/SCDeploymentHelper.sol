@@ -28,7 +28,7 @@ contract SCDeploymentHelper {
     uint256 private constant JOYRIDE_ALLOCATION = 320_000_000 ether;
 
     ///@notice The address of the Base multisig wallet that is controlled by The Super Champs Foundation
-    address private constant SUPER_CHAMPS_FOUNDATION = address(0x423bA9539440ec39B573Ed5F0eD98e1Ed39cD634);//address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2); //need correct address
+    address private constant SUPER_CHAMPS_FOUNDATION = address(0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d);//address(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2); //need correct address
     ///@notice The quantity of tokens to mint into the Base multisig wallet that is controlled by The Super Champs Foundation.
     uint256 private constant SUPER_CHAMPS_FOUNDATION_ALLOCATION = 680_000_000 ether;
 

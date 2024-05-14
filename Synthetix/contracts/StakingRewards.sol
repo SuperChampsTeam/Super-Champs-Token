@@ -29,8 +29,6 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     uint256 internal _totalSupply;
     mapping(address => uint256) internal _balances;
 
-    uint256 _ts;
-
     /* ========== CONSTRUCTOR ========== */
 
     constructor(
@@ -66,7 +64,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
             rewardPerTokenStored + (((((lastTimeRewardApplicable()-lastUpdateTime)*rewardRate)*1e18)/_totalSupply));
     }
 
-    function earned(address account) public view returns (uint256) {
+    function earned(address account) public virtual view returns (uint256) {
         return (_balances[account]*(rewardPerToken()-userRewardPerTokenPaid[account])) / 1e18 + rewards[account];
     }
 
@@ -75,16 +73,10 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     }
 
     function timestamp() internal view returns (uint256) {
-        return _ts == 0 ? block.timestamp : _ts;
+        return block.timestamp;
     } 
 
     /* ========== MUTATIVE FUNCTIONS ========== */
-
-    
-    //Testing Only! Do Not include in Production
-    function TEST_spoofTimeStamp(uint256 timestamp_) external {
-        _ts = timestamp_;
-    }
 
     function stake(uint256 amount) external virtual nonReentrant notPaused updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
@@ -94,7 +86,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
+    function withdraw(uint256 amount) public virtual nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply - amount;
         _balances[msg.sender] = _balances[msg.sender] - amount;
@@ -157,7 +149,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     /* ========== MODIFIERS ========== */
 
-    modifier updateReward(address account) {
+    modifier updateReward(address account) virtual {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {

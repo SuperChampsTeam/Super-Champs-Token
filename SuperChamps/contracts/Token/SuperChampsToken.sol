@@ -25,13 +25,15 @@ contract SuperChampsToken is ERC20, ERC20Permit {
     modifier isAdminOrUnlocked() {
         require(!transfersLocked || 
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, _msgSender()) ||
-                permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, tx.origin));
+                permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, tx.origin),
+                "NOT YET UNLOCKED");
         _;
     }
 
     ///@notice A function modifier that restricts to Global Admins
     modifier isGlobalAdmin() {
-        require(permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, _msgSender()));
+        require(permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, _msgSender()),
+                "ADMIN ONLY");
         _;
     }
 
@@ -90,7 +92,7 @@ contract SuperChampsToken is ERC20, ERC20Permit {
         return super.transferFrom(from, to, amount);
     }
 
-    ///@notice Called to unlock transfers permenantly.
+    ///@notice Called to unlock transfers permanently. Token transfers cannot be locked after unlock.
     ///@dev Only callable by a Global Admin.
     function unlockTransfers() public isGlobalAdmin{
         transfersLocked = false;
