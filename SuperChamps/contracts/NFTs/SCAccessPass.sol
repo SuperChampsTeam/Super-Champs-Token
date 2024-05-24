@@ -21,16 +21,19 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     IPermissionsManager private immutable _permissions;
 
     /// @notice Mapping of SBT IDs by address
-    mapping(address => uint256) public passholderID;
+    mapping(address => uint256) public passholder_id;
+
+    /// @notice Mapping of addresses by SBT IDs
+    mapping(uint256 => address) public id_passholder;
 
     /// @notice Mapping of verification status by address
     mapping(address => bool) public _verified;
 
-    /// @notice Mapping of metagame multiplier basis points by address
-    mapping(address => uint256) public metagame_multiplier;
+    /// @notice Mapping of pass level by address
+    mapping(address => uint256) public pass_level;
 
-    /// @notice The price of minting an SBT
-    uint256 public price = 0.001 ether;
+    /// @notice The price of upgrading/minting an SBT. Entry 0 is the "upgrade" from level 0 (unowned to owned), ie mint price.
+    uint256[] public upgrade_prices = [0.001 ether];
 
     /// @notice The token ID counter
     uint256 private _tokenIdCounter = 1;
@@ -56,23 +59,20 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         _renderer = new SCDefaultRenderer(permissions_, name_, symbol_, uri_);
     }
 
-    /// @notice Queries metagame multiplier of a specfied address's pass. 
+    /// @notice Queries level of a specfied address's pass. 
     /// @param addr_ The address to query.
-    /// @return _multiplier uint256 Returns the rank of the user's access pass. Result is in basis points. 
-    function getMetagameMultiplier(address addr_) external view returns (uint256 _multiplier) {
-        _multiplier = metagame_multiplier[addr_];
-	    if(_multiplier == 0) 
-	    {
-	        _multiplier = 10000;
-        }
+    /// @return _level uint256 Returns the level of the user's access pass. Level 0 is unowned. Owned, level starts at 1.
+    function getLevel(address addr_) external view returns (uint256 _level) {
+        _level = pass_level[addr_];
     }
 
-    /// @notice Sets a player's metagame multiplier
-    /// @dev Only callable by a systems admin.
-    /// @param addr_ The address of the player.
-    /// @param mult_bp_ Basis points of multiplier
-    function setMetagameMultiplier(address addr_, uint256 mult_bp_) external isSystemsAdmin {
-        metagame_multiplier[addr_] = mult_bp_;
+    /// @notice Queries level of a specfied pass. 
+    /// @param id_ The pass to query.
+    /// @return _level uint256 Returns the level of the access pass. Level 0 is unowned. Owned, level starts at 1.
+    function getLevel(uint256 id_) external view returns (uint256 _level) {
+        uint256 addr_ = id_passholder[id_];
+        require(addr_ != address(0), "INVALID ID");
+        _level = getLevel(addr_);
     }
 
     /// @notice Sets a new renderer contract.
@@ -85,8 +85,14 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @notice Sets a new price (in ether) for minting SBTs.
     /// @dev Only callable by a systems admin.
     /// @param price_ The new price.
-    function setPrice(uint256 price_) external isSystemsAdmin {
-        price = price_;
+    function setPrice(uint256 price_, uint256 level_) external isSystemsAdmin {
+        require(level_ <= upgrade_prices.length, "CANT SKIP LEVELS");
+
+        if(level_ == upgrade_prices.length) {
+            upgrade_prices.push(price_);
+        } else {
+            upgrade_prices[level_] = price_;
+        }
     }
 
     /// @notice Withdraws all minting fees.
@@ -109,11 +115,12 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @notice Mints an SBT.
     /// @dev Payable function. Requires msg.value to equal price.
     function register() external payable {
-        require(passholderID[_msgSender()] == 0, "ALREADY MINTED SBT");
-        require(msg.value == price, "INVALID PAYMENT");
+        require(passholder_id[_msgSender()] == 0, "ALREADY MINTED SBT");
+        require(msg.value == upgrade_prices[0], "INVALID PAYMENT");
         uint256 tokenId = _tokenIdCounter;
         _safeMint(_msgSender(), tokenId);
-        passholderID[_msgSender()] = tokenId;
+        setPassholderID(holder_, tokenId);
+        pass_level[_msgSender()] = 1;
         _tokenIdCounter++;
     }
 
@@ -121,28 +128,39 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @dev Callable only by Systems Admin.
     /// @param recipient_ The token recipient.
     function freeRegister(address recipient_) external isSystemsAdmin {
-        require(passholderID[recipient_] == 0, "ALREADY MINTED SBT");
+        require(passholder_id[recipient_] == 0, "ALREADY MINTED SBT");
         uint256 tokenId = _tokenIdCounter;
         _safeMint(recipient_, tokenId);
-        passholderID[recipient_] = tokenId;
+        setPassholderID(holder_, tokenId);
         _tokenIdCounter++;
+    }
+
+    /// @notice Mints an SBT.
+    /// @dev Payable function. Requires msg.value to equal price.
+    function upgrade() external payable {
+        require(passholder_id[_msgSender()] > 0, "MUST MINT SBT");
+        uint256 level_ = pass_level[_msgSender()];
+        require(level_ < upgrade_prices.length, "MAX LEVEL");
+        require(msg.value == upgrade_prices[level_], "INVALID PAYMENT");
+        pass_level[_msgSender()] = level_+1;
     }
 
     /// @notice Burns an SBT from a holder. May be used for future metagame functionality.
     /// @dev Callable only by Systems Admin.
     /// @param holder_ The token holder.
     function burnToken(address holder_) external isSystemsAdmin {
-        uint256 _tokenId = passholderID[holder_];
+        uint256 _tokenId = passholder_id[holder_];
         require(_tokenId != 0, "ALREADY MINTED SBT");
         _burn(_tokenId);
-        passholderID[holder_] = 0;
+        setPassholderID(holder_, 0);
+        pass_level[holder_] = 0;
     }
 
     /// @notice Queries if a specfied address has minted an SBT.
     /// @param addr_ The address to query.
     /// @return _result bool Returns true if the address has minted an SBT .
     function isPassHolder(address addr_) external view returns (bool _result) {
-        _result = passholderID[addr_] > 0;
+        _result = passholder_id[addr_] > 0;
     }
 
     /// @notice Queries if a specfied address has been verified.
@@ -150,6 +168,20 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @return _result bool Returns true if the address has had its verification status set to true.
     function isVerified(address addr_) public view returns (bool _result) {
         _result = _verified[addr_];
+    }
+
+    ///@notice Map an SBT ID to it's owner's address bi-directionally.
+    function setPassholderID(address addr_, uint256 id_) internal {
+        uint256 _old_id = passholder_id[addr_];
+        passholder_id[addr_] = id_;
+
+        if(_old_id > 0) {
+            id_passholder[_old_id] = address(0x0);
+        }
+
+        if(id_ > 0) {
+            id_passholder[id_] = addr_;
+        }
     }
 
     /**

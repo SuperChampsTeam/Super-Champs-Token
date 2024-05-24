@@ -6,6 +6,7 @@ pragma solidity ^0.8.24;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
+import "../../interfaces/ISCAccessPass.sol";
 
 /// @title Single entry (semi-fungible style) Soul Bound Token metadata renderer. 
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
@@ -15,6 +16,9 @@ contract SCDefaultRenderer is IERC721MetadataRenderer {
 
     ///@notice The permissions registry
     IPermissionsManager private immutable _permissions;
+
+    ///@notice The access pass SBT contract
+    ISCAccessPass private _access_pass; 
 
     ///@notice The name which is returned by the name() function.
     string _name;
@@ -39,11 +43,13 @@ contract SCDefaultRenderer is IERC721MetadataRenderer {
     ///@param symbol_ The symbol of the NFT collection associated with this renderer.
     constructor(
         IPermissionsManager permissions_,
+        ISCAccessPass access_pass_,
         string memory name_, 
         string memory symbol_,
         string memory uri_) 
     {
         _permissions = permissions_;
+        _access_pass = access_pass_;
         _name = name_;
         _symbol = symbol_;
         _uri = uri_;
@@ -56,6 +62,13 @@ contract SCDefaultRenderer is IERC721MetadataRenderer {
     function setURI(string memory uri_, bool concatenate_ids_) external isSystemsAdmin {
         _uri = uri_;
         _concatenate_ids = concatenate_ids_;
+    }
+
+    ///@notice Sets the contract address that pass level is read from.
+    ///@dev Only callable by a Systems Admin.
+    ///@param access_pass_ The contract address
+    function setAccessPass(address access_pass_) external isSystemsAdmin {
+        _access_pass = ISCAccessPass(access_pass_);
     }
 
     /**
@@ -82,7 +95,8 @@ contract SCDefaultRenderer is IERC721MetadataRenderer {
         } 
         else 
         {
-            return _uri;
+            uint256 _level = _access_pass.getLevel(token_id_);
+            return string.concat(_uri, string.concat("/",_level.toString()));
         }
     }
 }
