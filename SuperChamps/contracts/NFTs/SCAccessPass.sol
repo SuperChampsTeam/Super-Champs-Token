@@ -136,7 +136,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         _tokenIdCounter++;
     }
 
-    /// @notice Mints an SBT.
+    /// @notice Update level of an SBT.
     /// @dev Payable function. Requires msg.value to equal price.
     function upgrade() external payable {
         require(passholder_id[_msgSender()] > 0, "MUST MINT SBT");
@@ -144,6 +144,16 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         require(level_ < upgrade_prices.length, "MAX LEVEL");
         require(msg.value == upgrade_prices[level_], "INVALID PAYMENT");
         pass_level[_msgSender()] = level_+1;
+    }
+
+    /// @notice Update level of an SBT of a recipient without requiring payment.
+    /// @dev Callable only by Systems Admin.
+    /// @param recipient_ The recipient whose SBT is receiving a level update.
+    function freeUpgrade(address recipient_) external isSystemsAdmin {
+        require(passholder_id[recipient_] > 0, "MUST MINT SBT");
+        uint256 level_ = pass_level[recipient_];
+        require(level_ < upgrade_prices.length, "MAX LEVEL");
+        pass_level[recipient_] = level_+1;
     }
 
     /// @notice Burns an SBT from a holder. May be used for future metagame functionality.
