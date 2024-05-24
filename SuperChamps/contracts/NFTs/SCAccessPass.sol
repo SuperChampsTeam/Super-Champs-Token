@@ -132,6 +132,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         uint256 tokenId = _tokenIdCounter;
         _safeMint(recipient_, tokenId);
         setPassholderID(recipient_, tokenId);
+        pass_level[_msgSender()] = 1;
         _tokenIdCounter++;
     }
 
@@ -150,7 +151,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @param holder_ The token holder.
     function burnToken(address holder_) external isSystemsAdmin {
         uint256 _tokenId = passholder_id[holder_];
-        require(_tokenId != 0, "ALREADY MINTED SBT");
+        require(_tokenId != 0, "NON MINTED SBT");
         _burn(_tokenId);
         setPassholderID(holder_, 0);
         pass_level[holder_] = 0;
