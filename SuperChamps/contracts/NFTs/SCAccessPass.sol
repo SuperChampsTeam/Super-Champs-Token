@@ -56,21 +56,21 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         string memory uri_
     ) ERC721(name_, symbol_) { 
         _permissions = permissions_;
-        _renderer = new SCDefaultRenderer(permissions_, name_, symbol_, uri_);
+        _renderer = new SCDefaultRenderer(permissions_, this, name_, symbol_, uri_);
     }
 
     /// @notice Queries level of a specfied address's pass. 
     /// @param addr_ The address to query.
     /// @return _level uint256 Returns the level of the user's access pass. Level 0 is unowned. Owned, level starts at 1.
-    function getLevel(address addr_) external view returns (uint256 _level) {
+    function getLevel(address addr_) public view returns (uint256 _level) {
         _level = pass_level[addr_];
     }
 
     /// @notice Queries level of a specfied pass. 
     /// @param id_ The pass to query.
     /// @return _level uint256 Returns the level of the access pass. Level 0 is unowned. Owned, level starts at 1.
-    function getLevel(uint256 id_) external view returns (uint256 _level) {
-        uint256 addr_ = id_passholder[id_];
+    function getLevel(uint256 id_) public view returns (uint256 _level) {
+        address addr_ = id_passholder[id_];
         require(addr_ != address(0), "INVALID ID");
         _level = getLevel(addr_);
     }
@@ -119,7 +119,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         require(msg.value == upgrade_prices[0], "INVALID PAYMENT");
         uint256 tokenId = _tokenIdCounter;
         _safeMint(_msgSender(), tokenId);
-        setPassholderID(holder_, tokenId);
+        setPassholderID(_msgSender(), tokenId);
         pass_level[_msgSender()] = 1;
         _tokenIdCounter++;
     }
@@ -131,7 +131,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         require(passholder_id[recipient_] == 0, "ALREADY MINTED SBT");
         uint256 tokenId = _tokenIdCounter;
         _safeMint(recipient_, tokenId);
-        setPassholderID(holder_, tokenId);
+        setPassholderID(recipient_, tokenId);
         _tokenIdCounter++;
     }
 
