@@ -11,7 +11,7 @@ import "../../interfaces/ISCAccessPass.sol";
 /// @title Single entry (semi-fungible style) Soul Bound Token metadata renderer. 
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @dev Conforms to subset of IERC721Metadata. Able to be replaced by a custom on-chain SVG renderer.
-contract SCDefaultRenderer is IERC721MetadataRenderer {
+contract SCAccessPassRenderer is IERC721MetadataRenderer {
     using Strings for uint256;
 
     ///@notice The permissions registry

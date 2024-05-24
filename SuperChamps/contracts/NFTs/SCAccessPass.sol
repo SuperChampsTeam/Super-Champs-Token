@@ -4,7 +4,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./SCDefaultRenderer.sol";
+import "./SCAccessPassRenderer.sol";
 import "../../interfaces/ISCAccessPass.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
@@ -56,7 +56,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         string memory uri_
     ) ERC721(name_, symbol_) { 
         _permissions = permissions_;
-        _renderer = new SCDefaultRenderer(permissions_, this, name_, symbol_, uri_);
+        _renderer = new SCAccessPassRenderer(permissions_, this, name_, symbol_, uri_);
     }
 
     /// @notice Queries level of a specfied address's pass. 
