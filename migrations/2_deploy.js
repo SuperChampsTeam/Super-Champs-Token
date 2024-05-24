@@ -28,11 +28,11 @@ module.exports = async function (deployer) {
 
   await deployer.deploy(SCRewardsDispenser, pAddress, tokenAddress);
   const scRewardsDispenser = await SCRewardsDispenser.deployed();
-  console.log("scRewardsDispenser deployed ");
+  console.log("scRewardsDispenser deployed " + scRewardsDispenser.address);
 
   await deployer.deploy(SCAccessPass, pAddress, "SBT", "SBT", "https://champs-metadata.onjoyride.com/tc-genesis/tokens/revealed/1");
   const scAccessPass = await SCAccessPass.deployed();
-  console.log("scAccessPass deployed ");
+  console.log("scAccessPass deployed " + scAccessPass.address);
 
   //todo: Vested Token Allocations section of https://docs.google.com/document/d/1uMl_cJhMeJL0ND6i7eMOf73JtRQ5qnMTpeyNra343yI/edit#heading=h.gll6bjs55xo8
 
@@ -67,7 +67,7 @@ module.exports = async function (deployer) {
   
   await deployer.deploy(SCSeasonRewards, pAddress, tokenAddress, treasuryForSeason, scAccessPass.address);
   const scSeasonRewards = await SCSeasonRewards.deployed();
-  console.log("scSeasonRewards deployed ");
+  console.log("scSeasonRewards deployed " + scSeasonRewards.address);
 
   const exponentialVestingEscrow = await ExponentialVestingEscrow.at(emissionContractDeploymentAddress);
   const unclaimedAmount = await exponentialVestingEscrow.unclaimed();
@@ -81,7 +81,7 @@ module.exports = async function (deployer) {
   console.log(claimedAmountTxDetails);
 
 
-  const receipt3 = await transferLockERC20.approve(scSeasonRewards.address, emissionATreasury, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
+  const receipt3 = await transferLockERC20.approve(scSeasonRewards.address, unclaimedAmount, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
   console.log("transferLockERC20 approve receipt3 success to contract scSeasonRewards")
 
 
