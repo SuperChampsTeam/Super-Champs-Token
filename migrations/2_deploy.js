@@ -81,7 +81,7 @@ module.exports = async function (deployer) {
   console.log(claimedAmountTxDetails);
 
 
-  const receipt3 = await transferLockERC20.approve(scSeasonRewards.address, unclaimedAmount, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
+  const receipt3 = await transferLockERC20.approve(scSeasonRewards.address, emissionATreasuryAmount, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
   console.log("transferLockERC20 approve receipt3 success to contract scSeasonRewards")
 
 
