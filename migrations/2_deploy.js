@@ -30,7 +30,7 @@ module.exports = async function (deployer) {
   const scRewardsDispenser = await SCRewardsDispenser.deployed();
   console.log("scRewardsDispenser deployed ");
 
-  await deployer.deploy(SCAccessPass, pAddress, "SBT", "SBT", "https://champs-metadata.onjoyride.com/tc-genesis/tokens/revealed/1");
+  await deployer.deploy(SCAccessPass, pAddress, "SBT", "SBT", "https://champs-metadata.onjoyride.com/tc-genesis/tokens/revealed");
   const scAccessPass = await SCAccessPass.deployed();
   console.log("scAccessPass deployed ");
 

@@ -5,7 +5,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./SCDefaultRenderer.sol";
+import "./SCGenericRenderer.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISuperChampsToken.sol";
 import "../../interfaces/IERC721MetadataRenderer.sol";
@@ -63,7 +63,7 @@ contract SCTempLockedNFT is ERC721 {
     {
         champ_token = champ_token_;
         permissions = champ_token_.permissions();
-        _renderer = new SCDefaultRenderer(permissions, name_, symbol_, uri_);
+        _renderer = new SCGenericRenderer(permissions, name_, symbol_, uri_);
     }
 
     /// @notice Sets a new renderer contract.
