@@ -23,9 +23,6 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @notice Mapping of SBT IDs by address
     mapping(address => uint256) public passholder_id;
 
-    /// @notice Mapping of addresses by SBT IDs
-    mapping(uint256 => address) public id_passholder;
-
     /// @notice Mapping of verification status by address
     mapping(address => bool) public _verified;
 
@@ -70,7 +67,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @param id_ The pass to query.
     /// @return _level uint256 Returns the level of the access pass. Level 0 is unowned. Owned, level starts at 1.
     function getLevel(uint256 id_) public view returns (uint256 _level) {
-        address addr_ = id_passholder[id_];
+        address addr_ = ownerOf(id_);
         require(addr_ != address(0), "INVALID ID");
         _level = getLevel(addr_);
     }
@@ -183,16 +180,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
 
     ///@notice Map an SBT ID to it's owner's address bi-directionally.
     function setPassholderID(address addr_, uint256 id_) internal {
-        uint256 _old_id = passholder_id[addr_];
         passholder_id[addr_] = id_;
-
-        if(_old_id > 0) {
-            id_passholder[_old_id] = address(0x0);
-        }
-
-        if(id_ > 0) {
-            id_passholder[id_] = addr_;
-        }
     }
 
     /**
