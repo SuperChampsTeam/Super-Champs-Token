@@ -21,16 +21,13 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     IPermissionsManager private immutable _permissions;
 
     /// @notice Mapping of SBT IDs by address
-    mapping(address => uint256) public passholder_id;
-
-    /// @notice Mapping of addresses by SBT IDs
-    mapping(uint256 => address) public id_passholder;
+    mapping(address => uint256) private _passholder_id;
 
     /// @notice Mapping of verification status by address
-    mapping(address => bool) public _verified;
+    mapping(address => bool) private _verified;
 
     /// @notice Mapping of pass level by address
-    mapping(address => uint256) public pass_level;
+    mapping(address => uint256) private _pass_level;
 
     /// @notice The price of upgrading/minting an SBT. Entry 0 is the "upgrade" from level 0 (unowned to owned), ie mint price.
     uint256[] public upgrade_prices = [0.001 ether];
@@ -63,14 +60,14 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @param addr_ The address to query.
     /// @return _level uint256 Returns the level of the user's access pass. Level 0 is unowned. Owned, level starts at 1.
     function getLevel(address addr_) public view returns (uint256 _level) {
-        _level = pass_level[addr_];
+        _level = _pass_level[addr_];
     }
 
     /// @notice Queries level of a specfied pass. 
     /// @param id_ The pass to query.
     /// @return _level uint256 Returns the level of the access pass. Level 0 is unowned. Owned, level starts at 1.
     function getLevel(uint256 id_) public view returns (uint256 _level) {
-        address addr_ = id_passholder[id_];
+        address addr_ = ownerOf(id_);
         require(addr_ != address(0), "INVALID ID");
         _level = getLevel(addr_);
     }
@@ -115,12 +112,12 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @notice Mints an SBT.
     /// @dev Payable function. Requires msg.value to equal price.
     function register() external payable {
-        require(passholder_id[_msgSender()] == 0, "ALREADY MINTED SBT");
+        require(_passholder_id[_msgSender()] == 0, "ALREADY MINTED SBT");
         require(msg.value == upgrade_prices[0], "INVALID PAYMENT");
         uint256 tokenId = _tokenIdCounter;
         _safeMint(_msgSender(), tokenId);
         setPassholderID(_msgSender(), tokenId);
-        pass_level[_msgSender()] = 1;
+        _pass_level[_msgSender()] = 1;
         _tokenIdCounter++;
     }
 
@@ -128,50 +125,50 @@ contract SCAccessPass is ERC721, ISCAccessPass {
     /// @dev Callable only by Systems Admin.
     /// @param recipient_ The token recipient.
     function freeRegister(address recipient_) external isSystemsAdmin {
-        require(passholder_id[recipient_] == 0, "ALREADY MINTED SBT");
+        require(_passholder_id[recipient_] == 0, "ALREADY MINTED SBT");
         uint256 tokenId = _tokenIdCounter;
         _safeMint(recipient_, tokenId);
         setPassholderID(recipient_, tokenId);
-        pass_level[recipient_] = 1;
+        _pass_level[recipient_] = 1;
         _tokenIdCounter++;
     }
 
     /// @notice Update level of an SBT.
     /// @dev Payable function. Requires msg.value to equal price.
     function upgrade() external payable {
-        require(passholder_id[_msgSender()] > 0, "MUST MINT SBT");
-        uint256 level_ = pass_level[_msgSender()];
+        require(_passholder_id[_msgSender()] > 0, "MUST MINT SBT");
+        uint256 level_ = _pass_level[_msgSender()];
         require(level_ < upgrade_prices.length, "MAX LEVEL");
         require(msg.value == upgrade_prices[level_], "INVALID PAYMENT");
-        pass_level[_msgSender()] = level_+1;
+        _pass_level[_msgSender()] = level_+1;
     }
 
     /// @notice Update level of an SBT of a recipient without requiring payment.
     /// @dev Callable only by Systems Admin.
     /// @param recipient_ The recipient whose SBT is receiving a level update.
     function freeUpgrade(address recipient_) external isSystemsAdmin {
-        require(passholder_id[recipient_] > 0, "MUST MINT SBT");
-        uint256 level_ = pass_level[recipient_];
+        require(_passholder_id[recipient_] > 0, "MUST MINT SBT");
+        uint256 level_ = _pass_level[recipient_];
         require(level_ < upgrade_prices.length, "MAX LEVEL");
-        pass_level[recipient_] = level_+1;
+        _pass_level[recipient_] = level_+1;
     }
 
     /// @notice Burns an SBT from a holder. May be used for future metagame functionality.
     /// @dev Callable only by Systems Admin.
     /// @param holder_ The token holder.
     function burnToken(address holder_) external isSystemsAdmin {
-        uint256 _tokenId = passholder_id[holder_];
+        uint256 _tokenId = _passholder_id[holder_];
         require(_tokenId != 0, "NON MINTED SBT");
         _burn(_tokenId);
         setPassholderID(holder_, 0);
-        pass_level[holder_] = 0;
+        _pass_level[holder_] = 0;
     }
 
     /// @notice Queries if a specfied address has minted an SBT.
     /// @param addr_ The address to query.
     /// @return _result bool Returns true if the address has minted an SBT .
     function isPassHolder(address addr_) external view returns (bool _result) {
-        _result = passholder_id[addr_] > 0;
+        _result = _passholder_id[addr_] > 0;
     }
 
     /// @notice Queries if a specfied address has been verified.
@@ -183,16 +180,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
 
     ///@notice Map an SBT ID to it's owner's address bi-directionally.
     function setPassholderID(address addr_, uint256 id_) internal {
-        uint256 _old_id = passholder_id[addr_];
-        passholder_id[addr_] = id_;
-
-        if(_old_id > 0) {
-            id_passholder[_old_id] = address(0x0);
-        }
-
-        if(id_ > 0) {
-            id_passholder[id_] = addr_;
-        }
+        _passholder_id[addr_] = id_;
     }
 
     /**
