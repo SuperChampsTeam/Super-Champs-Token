@@ -3,3 +3,6 @@
 */*/*/artifacts/*
 */*/artifacts/*
 *.DS_Store
+node_modules
+ganache_db
+build
