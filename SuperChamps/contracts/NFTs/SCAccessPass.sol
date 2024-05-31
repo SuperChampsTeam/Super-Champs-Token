@@ -117,7 +117,7 @@ contract SCAccessPass is ERC721, ISCAccessPass {
         uint256 tokenId = _tokenIdCounter;
         _safeMint(_msgSender(), tokenId);
         setPassholderID(_msgSender(), tokenId);
-        _passholder_id[_msgSender()] = 1;
+        _pass_level[_msgSender()] = 1;
         _tokenIdCounter++;
     }
 
