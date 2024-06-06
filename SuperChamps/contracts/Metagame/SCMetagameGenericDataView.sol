@@ -27,6 +27,11 @@ contract SCMetagameGenericDataView is ISCMetagameDataSource {
         _;
     }
 
+    constructor(address permissions_, address metadata_registry_) {
+        permissions = IPermissionsManager(permissions_);
+        metadata_registry = ISCMetagameRegistry(metadata_registry_);
+    }
+
     /// @notice Sets the ISCMetagameDataSource view for a specified location.
     /// @param view_ The ISCMetagameDataSource view address.
     /// @param location_ The location id.

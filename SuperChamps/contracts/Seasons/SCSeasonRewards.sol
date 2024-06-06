@@ -55,6 +55,8 @@ contract SCSeasonRewards is ISCSeasonRewards{
         _;
     }
 
+    event TreasurySet(address treasury);
+
     ///@param permissions_ The address of the protocol permissions registry. Must conform to IPermissionsManager.
     ///@param token_ The address of the reward token. (The CHAMP token)
     ///@param treasury_ The address of the account/contract that the Seasons reward system pulls reward tokens from.
@@ -76,6 +78,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
     ///@param treasury_ The address of the new treasury.
     function setTreasury(address treasury_) external isGlobalAdmin {
         treasury = treasury_;
+        emit TreasurySet(treasury_);
     }
 
     ///@notice Initializes a new Season of the rewards program.
@@ -173,13 +176,14 @@ contract SCSeasonRewards is ISCSeasonRewards{
     ) external isQuestSystem
     {
         Season storage _season = seasons[id_];
+        uint256 _remaining_reward_amount = _season.remaining_reward_amount;
         require(_season.start_time > 0, "SEASON NOT FOUND");
         require(isSeasonClaimingEnded(_season, block.timestamp), "SEASON_CLAIM_NOT_ENDED");
-        require(_season.remaining_reward_amount > 0, "ZERO_REMAINING_AMOUNT");
+        require(_remaining_reward_amount > 0, "ZERO_REMAINING_AMOUNT");
 
-        bool transfer_success = token.transfer(treasury, uint256(_season.remaining_reward_amount));
+        bool transfer_success = token.transfer(treasury, _remaining_reward_amount);
         require(transfer_success, "FAILED TRANSFER");
-        _season.remaining_reward_amount -= uint128(_season.remaining_reward_amount);
+        _season.remaining_reward_amount -= uint128(_remaining_reward_amount);
     }
 
     ///@notice Finalizes a season, setting its rewards quantity and claim period.
@@ -249,7 +253,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         Season storage _season = seasons[season_id_];
         require(isSeasonClaimingActive(_season, block.timestamp), "SEASON_CLAIM_ENDED");
 
-        uint256 _reward = _getReward(season_id_, msg.sender);
+        uint256 _reward = season_rewards[season_id_][msg.sender];
         require(_reward > 0, "MUST HAVE A NON ZERO REWARD");
 
         bool transfer_success = token.transfer(msg.sender, _reward);
@@ -265,67 +269,12 @@ contract SCSeasonRewards is ISCSeasonRewards{
         uint256 season_id_
     ) public view returns(uint256 _reward) 
     {
-        _reward = _getReward(season_id_, msg.sender);
+        _reward = season_rewards[season_id_][msg.sender];
         Season storage _season = seasons[season_id_];
         if( !isSeasonClaimingActive(_season, block.timestamp) || 
             !access_pass.isVerified(msg.sender)) 
         {
             _reward = 0;
-        }
-    }
-
-    ///@notice get tokens rewarded to a player in the specified season, less their claimed tokens.
-    ///@param season_id_ The season to get reward tokens from.
-    ///@param player_ The address of the player whose rewards are being queried.
-    function _getReward(
-        uint256 season_id_,
-        address player_
-    ) public view returns(uint256) 
-    {
-        uint256 _reward = season_rewards[season_id_][player_];
-        uint256 _claimed = claimed_rewards[season_id_][player_];
-        
-        return _reward - _claimed;
-    }
-
-    ///@notice Constructs a message hash from a player score update request payload.
-    ///@param player_ The player address.
-    ///@param season_id_ The ID of the season.
-    ///@param score_ The player's total current score. (Current at timestamp_, if a signature is provided.
-    ///@param timestamp_ The time at which this signature was generated. 0 If being called by a systems admin.
-    function _getMessageHash(
-        address player_,
-        uint256 season_id_,
-        uint256 score_,
-        uint256 timestamp_
-    ) internal pure returns (bytes32) {
-        bytes32 _messageHash =  keccak256(abi.encodePacked(player_, season_id_, score_, timestamp_));
-
-        /*
-        Signature is produced by signing a keccak256 hash with the following format:
-        "\x19Ethereum Signed Message\n" + len(msg) + msg
-        */
-        return keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", _messageHash)
-        );
-    }
-
-    /// @notice Used to split a signature into r,s,v components which are required to recover a signing address.
-    /// @param sig_ The signature to split
-    /// @return _r bytes32 The r component
-    /// @return _s bytes32 The s component
-    /// @return _v bytes32 The v component
-    function _splitSignature(bytes memory sig_)
-        public
-        pure
-        returns (bytes32 _r, bytes32 _s, uint8 _v)
-    {
-        require(sig_.length == 65, "invalid signature length");
-
-        assembly {
-            _r := mload(add(sig_, 32))
-            _s := mload(add(sig_, 64))
-            _v := byte(0, mload(add(sig_, 96)))
         }
     }
 
