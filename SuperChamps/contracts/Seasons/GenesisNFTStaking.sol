@@ -4,24 +4,27 @@
 pragma solidity ^0.8.24;
 
 import {IERC165, ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-/// @title Non-Fungible Soul Bound Token (SBT) with a small fee and optional metadata renderer.
+/// @title Dirt Simple Non-Fungible Token Staking Contract
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
-/// @notice The metadata renderer may be updated to add additional functionality to the SBT in the future.
+/// @notice Allows for the deposit and withdrawal of NFTs from a specified collection. 
+/// @dev Allows external query of all NFTs a user has staked with historical data on their last staked/unstaked timestamp.
 contract GenesisNFTStaking is IERC721Receiver, ERC165 {
+    using EnumerableSet for EnumerableSet.UintSet;
     IERC721 private immutable _underlying;
 
     struct StakingData {
-        uint256 token_id;
         uint256 last_staked;
         uint256 last_unstaked;
+        address last_staker;
     }
 
-    mapping(address => mapping(uint256 => StakingData)) public staking_data;
-    mapping(address => uint256[]) public staked_tokens;
+    mapping(uint256 => StakingData) public staking_data;
+    mapping(address => EnumerableSet.UintSet) staked_tokens;
 
     error ERC721UnsupportedToken(address token);
     error MustInitiateStakingFromSelf();
@@ -55,9 +58,10 @@ contract GenesisNFTStaking is IERC721Receiver, ERC165 {
         uint256 length = tokenIds.length;
         for (uint256 i = 0; i < length; ++i) {
             uint256 tokenId = tokenIds[i];
-            if (staking_data[msg.sender][tokenId].last_staked > 0 && 
-                staking_data[msg.sender][tokenId].last_unstaked < staking_data[msg.sender][tokenId].last_staked) {
-                staking_data[msg.sender][tokenId].last_unstaked = block.timestamp;
+            StakingData memory data = staking_data[tokenId];
+            if (staked_tokens[msg.sender].contains(tokenId)) {
+                staking_data[tokenId].last_unstaked = block.timestamp;
+                staked_tokens[msg.sender].remove(tokenId);
                 emit TokenUnstaked(tokenId, msg.sender);
                 underlying().safeTransferFrom(address(this), msg.sender, tokenId);
             } else {
@@ -68,11 +72,25 @@ contract GenesisNFTStaking is IERC721Receiver, ERC165 {
         return true;
     }
 
-    function StakedTokens(address staker) public view returns (StakingData[] memory ret) {
-        uint256 length = staked_tokens[staker].length;
+    /**
+     * @dev Used by front-end user to determine which tokens are CURRENTLY staked in the contract.
+     */
+    function StakedTokens(address staker) public view returns (uint256[] memory ret) {
+        uint256 length = staked_tokens[staker].length();
+        ret = new uint256[](length);
+        for(uint i = 0; i < length; i++) {
+            ret[i] = staked_tokens[staker].at(i);
+        }
+    }
+
+    /**
+     * @dev Used by back-end system to query latest staking data from a list of token IDs.
+     */
+    function TokenData(uint256[] memory tokenIds) public view returns (StakingData[] memory ret) {
+        uint256 length = tokenIds.length;
         ret = new StakingData[](length);
         for(uint i = 0; i < length; i++) {
-            ret[i] = staking_data[staker][staked_tokens[staker][i]];
+            ret[i] = staking_data[i];
         }
     }
 
@@ -95,12 +113,14 @@ contract GenesisNFTStaking is IERC721Receiver, ERC165 {
         if (address(underlying()) != msg.sender) {
             revert ERC721UnsupportedToken(msg.sender);
         }
-        if (staking_data[from][tokenId].token_id == 0) {
-            staking_data[from][tokenId] = StakingData(tokenId, block.timestamp, 0);
-            staked_tokens[from].push(tokenId);
+        if (staking_data[tokenId].last_staker == address(0)) {
+            staking_data[tokenId] = StakingData(tokenId, block.timestamp, from);
         } else {
-            staking_data[from][tokenId].last_staked = block.timestamp;
+            staking_data[tokenId].last_staked = block.timestamp;
+            staking_data[tokenId].last_staker = from;
         }
+
+        staked_tokens[msg.sender].add(tokenId);
         emit TokenStaked(tokenId, from);
         return IERC721Receiver.onERC721Received.selector;
     }
