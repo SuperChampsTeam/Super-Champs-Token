@@ -100,8 +100,6 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
             address(access_pass)
         );
 
-        location_rewards[location_name_].setRewardsDistribution(address(this));
-
         locations.push(location_name_);
         
         emit LocationAdded(location_name_);
