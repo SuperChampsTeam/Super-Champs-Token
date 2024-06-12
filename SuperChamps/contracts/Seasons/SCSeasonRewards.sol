@@ -202,6 +202,7 @@ contract SCSeasonRewards is ISCSeasonRewards{
         require(isSeasonEnded(_season, block.timestamp), "SEASON_NOT_ENDED");
         require(!isSeasonFinalized(_season), "SEASON_FINALIZED");
         require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT DOESN'T MATCH");
+        require(claim_duration_ >= 7 days && claim_duration_ < 1000 days, "CLAIM DURATION OUT OF BOUNDS");
 
         bool transfer_success = token.transferFrom(treasury, address(this), reward_amount_);
         require(transfer_success, "FAILED TRANSFER");
