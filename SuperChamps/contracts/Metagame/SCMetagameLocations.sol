@@ -136,6 +136,7 @@ contract SCMetagameLocations is ISCMetagameDataSource {
         
         uint256 _next_epoch = next_epoch;
         require(_next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
+
         uint256 _length = locations_.length;
         require(_length == location_reward_shares_.length, "INPUT MISMATCH");
         
@@ -157,12 +158,14 @@ contract SCMetagameLocations is ISCMetagameDataSource {
         uint256 _num_locations = locations_.length;
         for(uint256 i = 0; i < _num_locations; i++) {
             string memory _location = locations_[i];
-            require(address(location_rewards[_location]) != address(0), "HOUSE DOESNT EXIST");
+            SCMetagameLocationRewards _location_staker = location_rewards[_location];
+            require(address(_location_staker) != address(0), "LOCATION DOESNT EXIST");
+            require(_location_staker.periodFinish() < block.timestamp, "LOCATION STREAM NOT FINISHED");
             uint256 _share = location_reward_shares_[i];
-            location_rewards[_location].setRewardsDuration(_duration);
-            bool success = token.transfer(address(location_rewards[_location]), _share);
+            _location_staker.setRewardsDuration(_duration);
+            bool success = token.transfer(address(_location_staker), _share);
             require(success, "TRANSFER FAILED");
-            location_rewards[_location].notifyRewardAmount(_share);
+            _location_staker.notifyRewardAmount(_share);
         }
 
         current_epoch = _next_epoch;
