@@ -131,7 +131,9 @@ contract SCMetagameLocations is ISCMetagameDataSource {
 
     /// @notice Distribute emissions tokens to each locations contributions contract and initializes the next epoch.
     /// @dev Only callable by address with System Admin permissions. Must be called after the epoch has elapsed. 
-    function distributeRewards(string[] memory locations_, uint256[] memory location_reward_shares_) external isSystemsAdmin {
+    function distributeRewards(uint256 epoch_, string[] memory locations_, uint256[] memory location_reward_shares_) external isSystemsAdmin {
+        require(epoch_ == current_epoch, "INCORRECT EPOCH");
+        
         uint256 _next_epoch = next_epoch;
         require(_next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
         uint256 _length = locations_.length;
