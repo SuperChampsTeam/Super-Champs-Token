@@ -21,6 +21,12 @@ contract SCMetagameLocationRewards is StakingRewards {
     /// @notice The access pass SBT
     ISCAccessPass public access_pass;
 
+    /// @notice The true staked supply
+    uint256 public staked_supply;
+
+    /// @notice The true staked supply
+    mapping(address => uint256) public user_stakes;
+
     /// @dev The recorded multipliers (if any) of users who have deposited tokens.
     mapping(address => uint256) internal _multiplier_basis_points;
     
@@ -65,6 +71,9 @@ contract SCMetagameLocationRewards is StakingRewards {
         require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED ACCESS PASS");
         require(amount_ > 0, "CANNOT STAKE 0");
 
+        staked_supply += amount_;
+        user_stakes[msg.sender] += amount_;
+
         uint256 multiplied_amount_ = amount_ * _multiplier_basis_points[msg.sender];
         _totalSupply += multiplied_amount_;
         _balances[msg.sender] += multiplied_amount_;
@@ -83,7 +92,41 @@ contract SCMetagameLocationRewards is StakingRewards {
 	
         _totalSupply -= _multiplied_amount;
         _balances[msg.sender] -= _multiplied_amount;
+
+        staked_supply -= amount;
+        user_stakes[msg.sender] -= amount;
         stakingToken.transfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
+    }
+
+    function exit() override external {
+        withdraw(user_stakes[msg.sender]);
+        getReward();
+    }
+
+    function notifyRewardAmount(uint256 reward) external override onlyRewardsDistribution updateReward(address(0)) {
+        if (timestamp() >= periodFinish) {
+            rewardRate = reward / rewardsDuration;
+        } else {
+            uint256 remaining = periodFinish - timestamp();
+            uint256 leftover = remaining * rewardRate;
+            rewardRate = (reward + leftover) / rewardsDuration;
+        }
+
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range, preventing overflows due to
+        // very high values of rewardRate in the earned and rewardsPerToken functions;
+        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+        // If staking and rewards token are the same, ensure the balance reflects on the non-staked tokens.
+        uint balance = rewardsToken.balanceOf(address(this));
+        if(stakingToken == rewardsToken) {
+            balance -= staked_supply;
+        }
+
+        require(rewardRate <= balance / rewardsDuration, "Provided reward too high");
+
+        lastUpdateTime = timestamp();
+        periodFinish = timestamp() + rewardsDuration;
+        emit RewardAdded(reward);
     }
 }
