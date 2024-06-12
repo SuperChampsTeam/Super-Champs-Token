@@ -4,16 +4,14 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../Utils/SCPermissionedAccess.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCSeasonRewards.sol";
 
 /// @title Token Rewards Faucet
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice This contract that allows arbitrary addresses to claim reward tokens by providing a valid signature
-contract SCRewardsDispenser {
-    ///@notice The protocol permissions registry
-    IPermissionsManager immutable permissions;
-
+contract SCRewardsDispenser is SCPermissionedAccess {
     ///@notice The reward token that this contract manages
     IERC20 immutable token;
 
@@ -21,20 +19,12 @@ contract SCRewardsDispenser {
     ///@dev Members of the set are not valid signatures
     mapping(bytes => bool) private consumed_signatures;
 
-    ///@notice A function modifier that restricts execution to Global Admins
-    modifier isGlobalAdmin() {
-        require(
-            permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
-        _;
-    }
-
     ///@notice Emitted when an account claims reward tokens
     event rewardClaimed(address recipient, uint256 amount);
 
     ///@param permissions_ The address of the protocol permissions registry. Must conform to IPermissionsManager.
     ///@param token_ The address of the rewawd token. Must conform to IERC20.
-    constructor(address permissions_, address token_) {
-        permissions = IPermissionsManager(permissions_);
+    constructor(address permissions_, address token_) SCPermissionedAccess(permissions_) {
         token = IERC20(token_);
     }
 

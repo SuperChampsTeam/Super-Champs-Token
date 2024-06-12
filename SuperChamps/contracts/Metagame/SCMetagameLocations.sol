@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../Utils/SCPermissionedAccess.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCMetagameRegistry.sol";
 import "../../interfaces/ISCMetagameDataSource.sol";
@@ -13,13 +14,10 @@ import "./SCMetagameLocationRewards.sol";
 /// @title Manager for "Location Cup" token metagame
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Allows system to add locations, report scores for locations, assign awards tier percentages and distribute emissions tokens to location contribution contracts.
-contract SCMetagameLocations is ISCMetagameDataSource {
+contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     /// @notice The metadata registry.
     /// @dev Stores location membership information for users.
     ISCMetagameRegistry public immutable metadata;
-
-    /// @notice The permissions registry.
-    IPermissionsManager public immutable permissions;
 
     /// @notice The emissions token.
     IERC20 public immutable token;
@@ -53,18 +51,6 @@ contract SCMetagameLocations is ISCMetagameDataSource {
     /// @notice The numeric id (start timestamp) of the next epoch 
     uint256 public next_epoch = 0;
 
-    /// @notice Function modifier which requires the sender to possess the systems admin permission as recorded in "permissions"
-    modifier isSystemsAdmin() {
-        require(permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, msg.sender));
-        _;
-    }
-
-    /// @notice Function modifier which requires the sender to possess the global admin permission as recorded in "permissions"
-    modifier isGlobalAdmin() {
-        require(permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
-        _;
-    }
-
     event LocationAdded(string location);
 
     /// @param permissions_ Address of the protocol permissions registry. Must conform to IPermissionsManager.
@@ -79,8 +65,7 @@ contract SCMetagameLocations is ISCMetagameDataSource {
         address treasury_,
         address access_pass_,
         address data_view_
-    ) {
-        permissions = IPermissionsManager(permissions_);
+    ) SCPermissionedAccess(permissions_) {
         token = IERC20(token_);
         metadata = ISCMetagameRegistry(metadata_);
         treasury = treasury_;
