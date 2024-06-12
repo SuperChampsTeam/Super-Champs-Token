@@ -132,7 +132,8 @@ contract SCMetagameLocations is ISCMetagameDataSource {
     /// @notice Distribute emissions tokens to each locations contributions contract and initializes the next epoch.
     /// @dev Only callable by address with System Admin permissions. Must be called after the epoch has elapsed. 
     function distributeRewards(string[] memory locations_, uint256[] memory location_reward_shares_) external isSystemsAdmin {
-        require(next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
+        uint256 _next_epoch = next_epoch;
+        require(_next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
         uint256 _length = locations_.length;
         require(_length == location_reward_shares_.length, "INPUT MISMATCH");
         
@@ -147,11 +148,12 @@ contract SCMetagameLocations is ISCMetagameDataSource {
         require(_success);
         
         uint256 _duration = EPOCH; //If somehow the epoch was not initialized for an entire epoch span, default to 1 EPOCH in the future
-        if((next_epoch + _duration) > block.timestamp) {
-            _duration = (next_epoch + _duration) - block.timestamp;
+        if((_next_epoch + _duration) > block.timestamp) {
+            _duration = (_next_epoch + _duration) - block.timestamp;
         }
         
-        for(uint256 i = 0; i < locations_.length; i++) {
+        uint256 _num_locations = locations_.length;
+        for(uint256 i = 0; i < _num_locations; i++) {
             string memory _location = locations_[i];
             require(address(location_rewards[_location]) != address(0), "HOUSE DOESNT EXIST");
             uint256 _share = location_reward_shares_[i];
@@ -161,7 +163,7 @@ contract SCMetagameLocations is ISCMetagameDataSource {
             location_rewards[_location].notifyRewardAmount(_share);
         }
 
-        current_epoch = next_epoch;
+        current_epoch = _next_epoch;
         next_epoch = block.timestamp + _duration;
     }
 
