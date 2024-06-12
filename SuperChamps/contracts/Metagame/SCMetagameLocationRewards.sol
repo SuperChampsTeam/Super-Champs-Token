@@ -40,29 +40,10 @@ contract SCMetagameLocationRewards is StakingRewards {
         rewardsDuration = 0;
     }
 
-    /// @notice Identical to base contract except that only specific users may deposit tokens. See {StakingRewards-stake}.
-    function stake(uint256 amount_) external override nonReentrant notPaused updateReward(msg.sender) {
-        require(metagame_data.getMembership(msg.sender, location_id), "MUST BE IN HOUSE");
-        require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED ACCESS PASS");
-        require(amount_ > 0, "CANNOT STAKE 0");
-
-        uint256 _old_multiplier_basis_points = _multiplier_basis_points[msg.sender];
-        _multiplier_basis_points[msg.sender] = metagame_data.getMultiplier(msg.sender, location_id);
-
-        _totalSupply -= _balances[msg.sender] * _old_multiplier_basis_points / 10000;
-        _totalSupply = _totalSupply + ((_balances[msg.sender]+amount_) * _multiplier_basis_points[msg.sender] / 10000);
-        _balances[msg.sender] = _balances[msg.sender] + amount_;
-        stakingToken.transferFrom(msg.sender, address(this), amount_);
-
-        emit Staked(msg.sender, amount_);
-    }
-
-    function informUpdateMultiplier(address addr_) public 
-    {
-        //Need to implement function that forces multiplier to update when data source updates.
-    }
-
-    function updateMultiplier(address addr_) internal returns (uint256 _mult_bp)
+    /// @param addr_ Address of the staker who needs to have their multiplier updated
+    /// @notice Updates an accounts bonus multiplier from the metagame metadata system.
+    /// @dev Underlying balance is assumed to be stored as a pre-multiplied quantity.
+    function updateMultiplier(address addr_) public updateReward(msg.sender) returns (uint256 _mult_bp)
     {
 	    _mult_bp = metagame_data.getMultiplier(addr_, location_id);
 
@@ -70,40 +51,39 @@ contract SCMetagameLocationRewards is StakingRewards {
         {
             uint256 _old_multiplier = _multiplier_basis_points[addr_];
             _multiplier_basis_points[addr_] = _mult_bp;
-            _totalSupply = _totalSupply - ((_balances[addr_] * _old_multiplier) / 10000);
-            _totalSupply = _totalSupply + ((_balances[addr_] * _mult_bp) / 10000);
+
+            _totalSupply -= _balances[addr_];
+            _balances[addr_] = (_balances[addr_] * _mult_bp) / _old_multiplier;
+            _totalSupply += _balances[addr_];
         }
     }
 
+    /// @notice Identical to base contract except that it uses a multiplier for bonus rewards and only specific users may deposit tokens. 
+    /// @notice See {StakingRewards-stake}.
+    function stake(uint256 amount_) external override nonReentrant notPaused updateReward(msg.sender) {
+        require(metagame_data.getMembership(msg.sender, location_id), "MUST BE IN HOUSE");
+        require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED ACCESS PASS");
+        require(amount_ > 0, "CANNOT STAKE 0");
+
+        uint256 multiplied_amount_ = amount_ * _multiplier_basis_points[msg.sender];
+        _totalSupply += multiplied_amount_;
+        _balances[msg.sender] += multiplied_amount_;
+
+        stakingToken.transferFrom(msg.sender, address(this), amount_);
+        emit Staked(msg.sender, amount_);
+    }
+
+    /// @notice Identical to base contract except that it uses a multiplier for bonus rewards and only specific users may deposit tokens. 
+    /// @notice See {StakingRewards-stake}.
     function withdraw(uint256 amount) public override nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
 
 	    uint256 _mult_bp = _multiplier_basis_points[msg.sender];
+        uint256 _multiplied_amount = (amount * _mult_bp);
 	
-        _totalSupply = _totalSupply - ((amount * _mult_bp) / 10000);
-        _balances[msg.sender] = _balances[msg.sender] - amount;
+        _totalSupply -= _multiplied_amount;
+        _balances[msg.sender] -= _multiplied_amount;
         stakingToken.transfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
-    }
-
-    function earned(address account) public override view returns (uint256 _earned) {
-        _earned = (
-	    	(( _multiplier_basis_points[account] * _balances[account]) / 10000) * 
-	    	(rewardPerToken() - userRewardPerTokenPaid[account])
-	    ) / 1e18 + 
-	    rewards[account];
-    }
-
-    modifier updateReward(address account) override {
-	    updateMultiplier(msg.sender);
-        
-	    rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
-
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
-        }
-        _;
     }
 }
