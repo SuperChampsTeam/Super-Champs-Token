@@ -8,17 +8,21 @@ import "../Utils/SCPermissionedAccess.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/ISCMetagameDataSource.sol";
 import "../../interfaces/ISCMetagameLocationRewards.sol";
+import "../../interfaces/ISCMetagameRegistry.sol";
 import "../../interfaces/ISCAccessPass.sol";
 
 /// @title Location membership gated extension of a Synthetix StakingRewards contract
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Requires that a contributor belong to the associated location, as defined by the protocol metadata registry.
-contract SCMetagameLocationRewards is ISCMetagameLocationRewards, StakingRewards, SCPermissionedAccess {
-    /// @notice The metadata registry
-    ISCMetagameDataSource immutable metagame_data;
+contract SCMetagameLocationRewards is ISCMetagameDataSource, ISCMetagameLocationRewards, StakingRewards, SCPermissionedAccess {
+    /// @notice The location manager metadata view
+    ISCMetagameDataSource public immutable metagame_data;
 
     /// @notice The name of the associated location
     string public location_id;
+
+    /// @notice The metadata key of the associated location's multiplier bonus
+    string public location_multiplier_key;
 
     /// @notice The access pass SBT
     ISCAccessPass public access_pass;
@@ -46,6 +50,7 @@ contract SCMetagameLocationRewards is ISCMetagameLocationRewards, StakingRewards
     ) StakingRewards(address(msg.sender), address(msg.sender), token_, token_) SCPermissionedAccess(permissions_) {
         metagame_data = ISCMetagameDataSource(metagame_data_);
         location_id = location_id_;
+        location_multiplier_key = string(abi.encode(location_id_, "_multiplier"));
         access_pass = ISCAccessPass(access_pass_);
         rewardsDuration = 0;
     }
@@ -53,9 +58,9 @@ contract SCMetagameLocationRewards is ISCMetagameLocationRewards, StakingRewards
     /// @param addr_ Address of the staker who needs to have their multiplier updated
     /// @notice Updates an accounts bonus multiplier from the metagame metadata system.
     /// @dev Underlying balance is assumed to be stored as a pre-multiplied quantity.
-    function updateMultiplier(address addr_) public updateReward(msg.sender) returns (uint256 _mult_bp)
+    function updateMultiplier(address addr_) public updateReward(addr_) returns (uint256 _mult_bp)
     {
-	    _mult_bp = metagame_data.getMultiplier(addr_, location_id);
+	    _mult_bp = getTotalMultiplier(addr_);
 
 	    if(_mult_bp != _multiplier_basis_points[addr_])
         {
@@ -71,7 +76,7 @@ contract SCMetagameLocationRewards is ISCMetagameLocationRewards, StakingRewards
     /// @notice Identical to base contract except that it uses a multiplier for bonus rewards and only specific users may deposit tokens. 
     /// @notice See {StakingRewards-stake}.
     function stake(uint256 amount_) external override nonReentrant notPaused updateReward(msg.sender) {
-        require(metagame_data.getMembership(msg.sender, location_id), "MUST BE IN HOUSE");
+        require(getMembership(msg.sender, location_id), "MUST BE MEMBER OF LOCATION");
         require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED ACCESS PASS");
         require(amount_ > 0, "CANNOT STAKE 0");
 
@@ -141,5 +146,41 @@ contract SCMetagameLocationRewards is ISCMetagameLocationRewards, StakingRewards
         lastUpdateTime = timestamp();
         periodFinish = timestamp() + rewardsDuration;
         emit RewardAdded(reward);
+    }
+
+    /// @notice Queries if a specfied address is a member of a specified location.
+    /// @param addr_ The address to query.
+    /// @param location_ The location id to query.
+    /// @return _result bool Returns true if the address is a member of the location.
+    function getMembership(address addr_, string memory location_) public view returns (bool) {
+        return metagame_data.getMembership(addr_, location_);
+    }
+
+    /// @notice Returns the metadata registry by way of the parent metadata view
+    function metadata_registry() public view returns (ISCMetagameRegistry) {
+        return metagame_data.metadata_registry();
+    }
+    
+    /// @notice Sets the local multiplier bonus of a specfied address.
+    /// @param addr_ The address to set multiplier bonus for.
+    /// @param multiplier_bonus_ Value is in basis points. Global bonus multiplier is added to 100% (10_000) to determine multiplier.
+    /// @dev Only callable by systems admin
+    function setMultiplier(address addr_, uint256 multiplier_bonus_) public virtual isSystemsAdmin {
+        metadata_registry().setMetadata(addr_, location_multiplier_key, multiplier_bonus_);
+    }
+
+    /// @notice Queries the global multiplier bonus of a specfied address.
+    /// @param addr_ The address to query.
+    /// @return _result uint256 Returns the numeric metadata mapped to that address, in basis points. 
+    /// @dev Global bonus multiplier is added to 100% (10_000) to determine multiplier.
+    function getMultiplier(address addr_) public view virtual returns (uint256) {
+        return metadata_registry().metadataUInt(addr_, location_multiplier_key);
+    }
+
+    /// @notice Queries the bonus multiplier of a specfied address at a specified location.
+    /// @param addr_ The address to query.
+    /// @return _result uint256 Returns the numeric metadata mapped to that address, in basis points
+    function getTotalMultiplier(address addr_) public view returns (uint256) {
+        return metagame_data.getTotalMultiplier(addr_) + getMultiplier(addr_);
     }
 }

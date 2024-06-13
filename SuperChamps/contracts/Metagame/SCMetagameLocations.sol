@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "../../../Synthetix/contracts/interfaces/IStakingRewards.sol";
 import "../Utils/SCPermissionedAccess.sol";
 import "../../interfaces/ISCMetagameLocationRewardsFactory.sol";
@@ -13,23 +14,19 @@ import "../../interfaces/ISCMetagameRegistry.sol";
 import "../../interfaces/ISCMetagameDataSource.sol";
 import "../../interfaces/ISCAccessPass.sol";
 import "./SCMetagameLocationRewards.sol";
+import "./SCMetagameGenericDataView.sol";
 
 /// @title Manager for "Location Cup" token metagame
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Allows system to add locations, report scores for locations, assign awards tier percentages and distribute emissions tokens to location contribution contracts.
-contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
+contract SCMetagameLocations is SCMetagameGenericDataView {
+    using EnumerableMap for EnumerableMap.Bytes32ToUintMap;
+
     /// @notice Factory for creating locations
     ISCMetagameLocationRewardsFactory public factory;
 
-    /// @notice The metadata registry.
-    /// @dev Stores location membership information for users.
-    ISCMetagameRegistry public immutable metadata;
-
     /// @notice The emissions token.
     IERC20 public immutable token;
-
-    /// @notice The metagame data view.
-    ISCMetagameDataSource public data_view;
 
     /// @notice The access pass SBT
     ISCAccessPass public access_pass;
@@ -47,15 +44,14 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     /// @notice List of the existent location names
     string[] public locations;
 
-    /// @notice List of award tiers, measured in proportional basis points
-    /// @dev The top scoring location receives prorata share of emissions from entry 0
-    uint256[] public award_tiers_bps;
-
     /// @notice The numeric id (start timestamp) of the current epoch
     uint256 public current_epoch = 0;
 
     /// @notice The numeric id (start timestamp) of the next epoch 
     uint256 public next_epoch = 0;
+
+    mapping(address => EnumerableMap.Bytes32ToUintMap) private user_stakes;
+    mapping(bytes32 => string) private location_hashes;
 
     event LocationAdded(string location);
 
@@ -68,6 +64,7 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     error NotEnoughToDistribute();
     error TransferFailure();
     error InputMismatch();
+    error InvalidLocationAddress(string location_id, address imposter, address staking_pool);
 
     /// @param permissions_ Address of the protocol permissions registry. Must conform to IPermissionsManager.
     /// @param token_ Address of the emissions token.
@@ -80,14 +77,11 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
         address token_,
         address metadata_,
         address treasury_,
-        address access_pass_,
-        address data_view_
-    ) SCPermissionedAccess(permissions_) {
+        address access_pass_
+    ) SCMetagameGenericDataView(permissions_, metadata_) {
         token = IERC20(token_);
-        metadata = ISCMetagameRegistry(metadata_);
         treasury = treasury_;
         access_pass = ISCAccessPass(access_pass_);
-        data_view = ISCMetagameDataSource(data_view_);
         factory = ISCMetagameLocationRewardsFactory(factory_);
     }
 
@@ -105,11 +99,18 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
         treasury = treasury_;
     }
 
-    /// @notice Assigns a new metagame data view
-    /// @param data_view_ address The new data view address
-    /// @dev Only callable by address with Systems Admin permissions. 
-    function setDataView(address data_view_) external isSystemsAdmin {
-        data_view = ISCMetagameDataSource(data_view_);
+    /// @notice Gets the staking contract for a location cast as an ISCMetagameLocationRewards
+    /// @param location_name_ The location id.
+    /// @return _location_rewards_ The queried location ISCMetagameLocationRewards
+    function getLocationRewards(string memory location_name_) view internal returns (ISCMetagameLocationRewards _location_rewards_) {
+        _location_rewards_ = ISCMetagameLocationRewards(address(location_rewards[location_name_]));
+    }
+
+    /// @notice Gets the staking contract for a location cast as an ISCMetagameDataSource
+    /// @param location_name_ The location id.
+    /// @return _view_ The queried data source.
+    function getLocationView(string memory location_name_) override view internal returns (ISCMetagameDataSource _view_) {
+        _view_ = ISCMetagameDataSource(address(location_rewards[location_name_]));
     }
 
     /// @notice Add a new "Location" to the metagame system.
@@ -120,16 +121,18 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
             revert LocationExists(location_name_);
         }
 
-        location_rewards[location_name_] = IStakingRewards(
+        address _location_staker = address(IStakingRewards(
             factory.addLocation(
                 location_name_, 
                 address(token), 
                 address(permissions), 
                 address(this), 
-                address(access_pass)));
+                address(access_pass))));
 
+        location_rewards[location_name_] = IStakingRewards(_location_staker);
         locations.push(location_name_);
-        
+        location_hashes[keccak256(abi.encodePacked(location_name_))] = location_name_;
+
         emit LocationAdded(location_name_);
     }
 
@@ -229,19 +232,58 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
         count = locations.length;
     }
 
-    /// @notice Queries the bonus multiplier of a specfied address at a specified location.
-    /// @param addr_ The address to query.
-    /// @param location_ The location id to query.
-    /// @return _result uint256 Returns the numeric metadata mapped to that address, in basis points
-    function getMultiplier(address addr_, string memory location_) external view returns (uint256) {
-        return data_view.getMultiplier(addr_, location_);
+    /// @notice Read the quantity of locations that exist
+    function allLocations() public view returns (string[] memory all_locations) {
+        all_locations = locations;
     }
 
-    /// @notice Queries if a specfied address is a member of a specified location.
-    /// @param addr_ The address to query.
-    /// @param location_ The location id to query.
-    /// @return _result bool Returns true if the address is a member of the location.
-    function getMembership(address addr_, string memory location_) external view returns (bool) {
-        return data_view.getMembership(addr_, location_);
+    /// @notice Called by the staking contract to inform on staking activity
+    function informStake(address user) public override {
+        ISCMetagameLocationRewards _staking_contract = ISCMetagameLocationRewards(msg.sender);
+        string memory _location = _staking_contract.location_id();
+        IStakingRewards _staking_rewards = location_rewards[_location];
+        
+        if(address(_staking_rewards) != msg.sender) {
+            revert InvalidLocationAddress(_location, msg.sender,address(_staking_rewards));
+        }
+
+        bytes32 location_hash = keccak256(abi.encodePacked(_location));
+        uint256 _staked_tokens = _staking_contract.user_stakes(user);
+        if(_staked_tokens == 0) {
+            user_stakes[user].remove(location_hash);
+        } else {
+            user_stakes[user].set(location_hash, _staked_tokens);
+        }
+    }
+
+    function getStakedLocations(address user_) public view returns (string[] memory _locations, uint256[] memory _staked_tokens) {
+        uint256 _length = user_stakes[user_].length();
+        _locations = new string[](_length);
+        _staked_tokens = new uint256[](_length);
+        for(uint256 i = 0; i < _length; i++) {
+            (bytes32 _location_hash, uint256 _quantity) = user_stakes[user_].at(i);
+            _locations[i] = location_hashes[_location_hash];
+            _staked_tokens[i] = _quantity;
+        }
+    }
+
+    /// @notice Sets the global multiplier bonus of a specfied address.
+    /// @param addr_ The address to set multiplier bonus for.
+    /// @param multiplier_bonus_ Value is in basis points. Global bonus multiplier is added to 100% (10_000) to determine multiplier.
+    /// @dev Only callable by systems admin
+    function setMultiplier(address addr_, uint256 multiplier_bonus_) public override isSystemsAdmin {
+        metadata_registry.setMetadata(addr_, BASE_MULTIPLIER, multiplier_bonus_);
+    }
+
+    function updateMultipliers(address user_, string[] memory locations_) public {
+        if(locations_.length == 0) {
+            (locations_,) = getStakedLocations(user_);
+        }
+
+        uint256 _length = locations_.length;
+        for(uint256 i; i < _length; i++) {
+            ISCMetagameLocationRewards _staking_rewards = ISCMetagameLocationRewards(address(location_rewards[locations_[i]]));
+            _staking_rewards.updateMultiplier(user_);
+        }
     }
 }

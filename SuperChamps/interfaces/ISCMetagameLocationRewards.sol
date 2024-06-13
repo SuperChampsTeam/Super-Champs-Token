@@ -3,8 +3,22 @@
 
 pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./ISCMetagameDataSource.sol";
 
 interface ISCMetagameLocationRewards {
+
+    function metagame_data() external returns (ISCMetagameDataSource);
+    
+    /// @notice The true staked supply of a specific user
+    function user_stakes(address staker) external returns (uint256);
+
+    /// @notice The true staked supply
+    function staked_supply() external returns (uint256);
+
+    /// @notice The name of the "location" for this staking pool
+    function location_id() external returns (string memory);
+    
+
     /// @param addr_ Address of the staker who needs to have their multiplier updated
     /// @notice Updates an accounts bonus multiplier from the metagame metadata system.
     /// @dev Underlying balance is assumed to be stored as a pre-multiplied quantity.
