@@ -4,7 +4,10 @@ pragma solidity ^0.8.24;
 
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../../../Synthetix/contracts/interfaces/IStakingRewards.sol";
 import "../Utils/SCPermissionedAccess.sol";
+import "../../interfaces/ISCMetagameLocationRewardsFactory.sol";
+import "../../interfaces/ISCMetagameLocationRewards.sol";
 import "../../interfaces/IPermissionsManager.sol";
 import "../../interfaces/ISCMetagameRegistry.sol";
 import "../../interfaces/ISCMetagameDataSource.sol";
@@ -15,6 +18,9 @@ import "./SCMetagameLocationRewards.sol";
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Allows system to add locations, report scores for locations, assign awards tier percentages and distribute emissions tokens to location contribution contracts.
 contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
+    /// @notice Factory for creating locations
+    ISCMetagameLocationRewardsFactory public factory;
+
     /// @notice The metadata registry.
     /// @dev Stores location membership information for users.
     ISCMetagameRegistry public immutable metadata;
@@ -36,7 +42,7 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     uint256 public EPOCH = 7 days;
 
     /// @notice A mapping of the emissions contribution contracts by location name
-    mapping(string => SCMetagameLocationRewards) public location_rewards;
+    mapping(string => IStakingRewards) public location_rewards;
     
     /// @notice List of the existent location names
     string[] public locations;
@@ -53,6 +59,16 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
 
     event LocationAdded(string location);
 
+    error LocationExists(string name);
+    error LocationDoesNotExist(string name);
+    error LocationNotFinishedStreaming(string name);
+    error IncorrectEpoch(uint256 requested_epoch, uint256 current_epoch);
+    error NotYetNextEpoch(uint256 next_epoch);
+    error CantWithdrawStakingToken();
+    error NotEnoughToDistribute();
+    error TransferFailure();
+    error InputMismatch();
+
     /// @param permissions_ Address of the protocol permissions registry. Must conform to IPermissionsManager.
     /// @param token_ Address of the emissions token.
     /// @param metadata_ Address of the protocol metadata registry. Must conform to ISCMetagameRegistry.
@@ -60,6 +76,7 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     /// @param access_pass_ Address of the protocol access pass SBT
     constructor(
         address permissions_,
+        address factory_,
         address token_,
         address metadata_,
         address treasury_,
@@ -71,6 +88,14 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
         treasury = treasury_;
         access_pass = ISCAccessPass(access_pass_);
         data_view = ISCMetagameDataSource(data_view_);
+        factory = ISCMetagameLocationRewardsFactory(factory_);
+    }
+
+    /// @notice Assigns a new factory from which location staking contracts are spawned.
+    /// @dev Only callable by address with Systems Admin permissions. 
+    /// @param factory_ The new factory's address. 
+    function setFactory(address factory_) external isSystemsAdmin {
+        factory = ISCMetagameLocationRewardsFactory(factory_);
     }
 
     /// @notice Assigns a new treasury from which the metagame system draws token rewards.
@@ -91,14 +116,17 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     /// @dev Only callable by address with System Admin permissions. This creates a new contract which participants can contribute tokens to. This new entity is bound to one of the possible "Locations" that the participants accounts can belong to.
     /// @param location_name_ A name for the new "Location". Must be the same string used by the metadata registry system.
     function addLocation(string calldata location_name_) external isSystemsAdmin {
-        require(address(location_rewards[location_name_]) == address(0), "HOUSE EXISTS");
+        if(address(location_rewards[location_name_]) != address(0)) {
+            revert LocationExists(location_name_);
+        }
 
-        location_rewards[location_name_] = new SCMetagameLocationRewards(
-            address(token),
-            address(this),
-            location_name_,
-            address(access_pass)
-        );
+        location_rewards[location_name_] = IStakingRewards(
+            factory.addLocation(
+                location_name_, 
+                address(token), 
+                address(permissions), 
+                address(this), 
+                address(access_pass)));
 
         locations.push(location_name_);
         
@@ -115,23 +143,29 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     /// @notice Distribute emissions tokens to each locations contributions contract and initializes the next epoch.
     /// @dev Only callable by address with System Admin permissions. Must be called after the epoch has elapsed. 
     function distributeRewards(uint256 epoch_, string[] memory locations_, uint256[] memory location_reward_shares_) external isSystemsAdmin {
-        require(epoch_ == current_epoch, "INCORRECT EPOCH");
+        if(epoch_ != current_epoch) {
+            revert IncorrectEpoch(epoch_, current_epoch);
+        }
         
         uint256 _next_epoch = next_epoch;
-        require(_next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
+        if(_next_epoch > block.timestamp) {
+            revert NotYetNextEpoch(_next_epoch);
+        }
 
         uint256 _length = locations_.length;
-        require(_length == location_reward_shares_.length, "INPUT MISMATCH");
+        if(_length != location_reward_shares_.length) {
+            revert InputMismatch();
+        }
         
         uint256 _amount;
         for(uint256 i = 0; i < _length; i++) {
             _amount += location_reward_shares_[i];
         }
 
-        require(_amount > token.allowance(treasury, address(this)), "NOT ENOUGH TO DISTRIBUTE");
-        
         bool _success = token.transferFrom(treasury, address(this), _amount);
-        require(_success);
+        if(!_success) {
+            revert NotEnoughToDistribute();
+        }
         
         uint256 _duration = EPOCH; //If somehow the epoch was not initialized for an entire epoch span, default to 1 EPOCH in the future
         if((_next_epoch + _duration) > block.timestamp) {
@@ -141,13 +175,21 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
         uint256 _num_locations = locations_.length;
         for(uint256 i = 0; i < _num_locations; i++) {
             string memory _location = locations_[i];
-            SCMetagameLocationRewards _location_staker = location_rewards[_location];
-            require(address(_location_staker) != address(0), "LOCATION DOESNT EXIST");
-            require(_location_staker.periodFinish() < block.timestamp, "LOCATION STREAM NOT FINISHED");
+            IStakingRewards _location_staker = location_rewards[_location];
+            
+            if(address(_location_staker) == address(0)) {
+                revert LocationDoesNotExist(_location);
+            }
+            if(_location_staker.periodFinish() > block.timestamp) {
+                revert LocationNotFinishedStreaming(_location);
+            }
+            
             uint256 _share = location_reward_shares_[i];
             _location_staker.setRewardsDuration(_duration);
             bool success = token.transfer(address(_location_staker), _share);
-            require(success, "TRANSFER FAILED");
+            if(!success) {
+                revert TransferFailure();
+            }
             _location_staker.notifyRewardAmount(_share);
         }
 
@@ -160,7 +202,9 @@ contract SCMetagameLocations is ISCMetagameDataSource, SCPermissionedAccess {
     /// @param tokenAddress_ The address of the token to recover
     /// @param tokenAmount_ The amount of the token to recover
     function recoverERC20(address tokenAddress_, uint256 tokenAmount_) external isGlobalAdmin {
-        require(tokenAddress_ != address(token), "CANT WITHDRAW CHAMP");
+        if(tokenAddress_ == address(token)) {
+            revert CantWithdrawStakingToken();
+        }
         IERC20(tokenAddress_).transfer(msg.sender, tokenAmount_);
     }
 

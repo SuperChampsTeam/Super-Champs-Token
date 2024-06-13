@@ -22,6 +22,8 @@ interface IStakingRewards {
 
     function totalSupply() external view returns (uint256);
 
+    function periodFinish() external view returns (uint256);
+
     // Mutative
 
     function exit() external;
@@ -31,4 +33,10 @@ interface IStakingRewards {
     function stake(uint256 amount) external;
 
     function withdraw(uint256 amount) external;
+
+    function setRewardsDuration(uint256 rewardsDuration) external;
+
+    function notifyRewardAmount(uint256 amount) external;
+
+    function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
 }

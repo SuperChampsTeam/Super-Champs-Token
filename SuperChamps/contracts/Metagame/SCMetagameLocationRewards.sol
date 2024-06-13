@@ -4,14 +4,16 @@
 pragma solidity ^0.8.24;
 
 import { StakingRewards } from "../../../Synthetix/contracts/StakingRewards.sol";
+import "../Utils/SCPermissionedAccess.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/ISCMetagameDataSource.sol";
+import "../../interfaces/ISCMetagameLocationRewards.sol";
 import "../../interfaces/ISCAccessPass.sol";
 
 /// @title Location membership gated extension of a Synthetix StakingRewards contract
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Requires that a contributor belong to the associated location, as defined by the protocol metadata registry.
-contract SCMetagameLocationRewards is StakingRewards {
+contract SCMetagameLocationRewards is ISCMetagameLocationRewards, StakingRewards, SCPermissionedAccess {
     /// @notice The metadata registry
     ISCMetagameDataSource immutable metagame_data;
 
@@ -36,10 +38,12 @@ contract SCMetagameLocationRewards is StakingRewards {
     /// @param access_pass_ Address of the protocol access pass SBT
     constructor(
         address token_,
+        address permissions_,
         address metagame_data_,
         string memory location_id_,
         address access_pass_
-    ) StakingRewards(address(msg.sender), address(msg.sender), token_, token_) {
+
+    ) StakingRewards(address(msg.sender), address(msg.sender), token_, token_) SCPermissionedAccess(permissions_) {
         metagame_data = ISCMetagameDataSource(metagame_data_);
         location_id = location_id_;
         access_pass = ISCAccessPass(access_pass_);
@@ -84,24 +88,33 @@ contract SCMetagameLocationRewards is StakingRewards {
 
     /// @notice Identical to base contract except that it uses a multiplier for bonus rewards and only specific users may deposit tokens. 
     /// @notice See {StakingRewards-stake}.
-    function withdraw(uint256 amount) public override nonReentrant updateReward(msg.sender) {
+    function withdraw(uint256 amount) public override nonReentrant {
+        _withdraw(msg.sender, amount);
+    }
+
+    function _withdraw(address from, uint256 amount) internal virtual updateReward(from) {
         require(amount > 0, "Cannot withdraw 0");
 
-	    uint256 _mult_bp = _multiplier_basis_points[msg.sender];
+	    uint256 _mult_bp = _multiplier_basis_points[from];
         uint256 _multiplied_amount = (amount * _mult_bp);
 	
         _totalSupply -= _multiplied_amount;
-        _balances[msg.sender] -= _multiplied_amount;
+        _balances[from] -= _multiplied_amount;
 
         staked_supply -= amount;
-        user_stakes[msg.sender] -= amount;
-        stakingToken.transfer(msg.sender, amount);
-        emit Withdrawn(msg.sender, amount);
+        user_stakes[from] -= amount;
+        stakingToken.transfer(from, amount);
+        emit Withdrawn(from, amount);
     }
 
     function exit() override external {
         withdraw(user_stakes[msg.sender]);
         getReward();
+    }
+
+    function spend(address from, address to, uint256 value) external isSystemsAdmin {
+        _withdraw(from, value);
+        stakingToken.transferFrom(from, to, value);
     }
 
     function notifyRewardAmount(uint256 reward) external override onlyRewardsDistribution updateReward(address(0)) {
