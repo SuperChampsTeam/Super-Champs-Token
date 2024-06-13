@@ -58,7 +58,6 @@ contract GenesisNFTStaking is IERC721Receiver, ERC165 {
         uint256 length = tokenIds.length;
         for (uint256 i = 0; i < length; ++i) {
             uint256 tokenId = tokenIds[i];
-            StakingData memory data = staking_data[tokenId];
             if (staked_tokens[msg.sender].contains(tokenId)) {
                 staking_data[tokenId].last_unstaked = block.timestamp;
                 staked_tokens[msg.sender].remove(tokenId);
@@ -90,7 +89,7 @@ contract GenesisNFTStaking is IERC721Receiver, ERC165 {
         uint256 length = tokenIds.length;
         ret = new StakingData[](length);
         for(uint i = 0; i < length; i++) {
-            ret[i] = staking_data[i];
+            ret[i] = staking_data[tokenIds[i]];
         }
     }
 
@@ -114,13 +113,13 @@ contract GenesisNFTStaking is IERC721Receiver, ERC165 {
             revert ERC721UnsupportedToken(msg.sender);
         }
         if (staking_data[tokenId].last_staker == address(0)) {
-            staking_data[tokenId] = StakingData(tokenId, block.timestamp, from);
+            staking_data[tokenId] = StakingData(block.timestamp, 0, from);
         } else {
             staking_data[tokenId].last_staked = block.timestamp;
             staking_data[tokenId].last_staker = from;
         }
 
-        staked_tokens[msg.sender].add(tokenId);
+        staked_tokens[from].add(tokenId);
         emit TokenStaked(tokenId, from);
         return IERC721Receiver.onERC721Received.selector;
     }
