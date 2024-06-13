@@ -242,11 +242,11 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         uint256 _reward = season_rewards[season_id_][msg.sender];
         require(_reward > 0, "MUST HAVE A NON ZERO REWARD");
 
-        bool transfer_success = token.transfer(msg.sender, _reward);
-        require(transfer_success, "FAILED TRANSFER");
-
         _season.remaining_reward_amount -= _reward;
         claimed_rewards[season_id_][msg.sender] = _reward;
+
+        bool transfer_success = token.transfer(msg.sender, _reward);
+        require(transfer_success, "FAILED TRANSFER");
     }
 
     ///@notice get reward tokens claimable by a player in the specified season.
