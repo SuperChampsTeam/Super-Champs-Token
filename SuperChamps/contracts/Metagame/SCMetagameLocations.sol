@@ -14,16 +14,6 @@ import "./SCMetagameLocationRewards.sol";
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Allows system to add locations, report scores for locations, assign awards tier percentages and distribute emissions tokens to location contribution contracts.
 contract SCMetagameLocations is ISCMetagameDataSource {
-
-    /// @notice Stores data related to each epoch of the location cup metagame
-    struct EpochData {
-        /// @notice Maps names of locations to their score
-        mapping(string => uint256) location_scores;
-        /// @notice Maps names of locations to their rank order
-        /// @dev Order of 0 is used to indicate an uninitialized score. "1" is top score rank order.
-        mapping(string => uint256) location_orders;
-    }
-
     /// @notice The metadata registry.
     /// @dev Stores location membership information for users.
     ISCMetagameRegistry public immutable metadata;
@@ -50,15 +40,12 @@ contract SCMetagameLocations is ISCMetagameDataSource {
     /// @notice A mapping of the emissions contribution contracts by location name
     mapping(string => SCMetagameLocationRewards) public location_rewards;
     
-    /// @notice List of the existant location names
+    /// @notice List of the existent location names
     string[] public locations;
 
     /// @notice List of award tiers, measured in proportional basis points
     /// @dev The top scoring location receives prorata share of emissions from entry 0
     uint256[] public award_tiers_bps;
-
-    /// @notice Mapping of epoch state information by epoch number
-    mapping(uint256 => EpochData) private epoch_data;
 
     /// @notice The numeric id (start timestamp) of the current epoch
     uint256 public current_epoch = 0;
@@ -77,6 +64,8 @@ contract SCMetagameLocations is ISCMetagameDataSource {
         require(permissions.hasRole(IPermissionsManager.Role.GLOBAL_ADMIN, msg.sender));
         _;
     }
+
+    event LocationAdded(string location);
 
     /// @param permissions_ Address of the protocol permissions registry. Must conform to IPermissionsManager.
     /// @param token_ Address of the emissions token.
@@ -129,105 +118,46 @@ contract SCMetagameLocations is ISCMetagameDataSource {
         location_rewards[location_name_].setRewardsDistribution(address(this));
 
         locations.push(location_name_);
+        
+        emit LocationAdded(location_name_);
     }
 
     /// @notice Retreives the address of the contribution repository of the specified "Location".
     /// @param location_name_ The name of the "Location". Must be the same string used by the metadata registry system.
+    /// @return address The address of the location's synthetix staking contract
     function getLocationRewardsStaker(string memory location_name_) public view returns (address) {
         return address(location_rewards[location_name_]);
     }
 
-    /// @notice Assigns reward tiers for locations. Awards will be based on location rank each epoch.
-    /// @dev Only callable by address with System Admin permissions.
-    /// @param tiers_ List of award tiers, in basis points. Length must match the quantity of locations. Total of all tiers must equal 1000.
-    function assignAwardTiers(uint256[] memory tiers_) external isSystemsAdmin {
-        require(tiers_.length == locations.length, "AWARD TIERS MISMATCH");
-
-        uint256 _totalBPS = 0;
-        delete award_tiers_bps;
-
-        for(uint256 i = 0 ; i < tiers_.length; i++) {
-            award_tiers_bps.push(tiers_[i]);
-            _totalBPS += tiers_[i];
-        }
-
-        require(_totalBPS == 1000, "DOES NOT TOTAL TO 1000 BPS");
-    }
-
-    /// @notice Report the scores for each location for the 
-    /// @dev Only callable by address with System Admin permissions. Overwrites previous score reports for current epoch. Must report scores for each existant location.
-    /// @param epoch_ The epoch the report is for
-    /// @param scores_ List of score values in descending order
-    /// @param locations_ List of locations that correspond to the list of scores_
-    function reportLocationScores(uint256 epoch_, uint256[] memory scores_, string[] memory locations_) external isSystemsAdmin {
-        require(epoch_ == current_epoch, "REPORT FOR INCORRECT EPOCH");
-        require(scores_.length == locations_.length, "MISMATHCED INPUTS");
-        require(locations_.length == locations.length, "NOT A FULL REPORT");
-
-        EpochData storage _epoch_data = epoch_data[current_epoch];
-
-        uint256 _lastScore = type(uint256).max;
-        for(uint256 i = 0; i < scores_.length; i++) {
-            string memory _location = locations_[i];
-            require(getLocationRewardsStaker(_location) != address(0), "HOUSE DOESNT EXIST");
-            require(_lastScore > scores_[i], "HOUSES OUT OF ORDER");
-
-            _lastScore = scores_[i];
-            _epoch_data.location_scores[_location] = _lastScore;
-            _epoch_data.location_orders[_location] = i + 1; //_order of 0 is used to indicate an uninitialized score. 
-        }
-    }
-
-    /// @notice Retrieves the score and rank order of a specified location for a given epoch. 
-    /// @param epoch_ The epoch the request is for
-    /// @param location_ The location the request is for
-    function getLocationScoreAndOrder(uint256 epoch_, string memory location_) public view returns (uint256 score, uint256 order) {
-        score = epoch_data[epoch_].location_scores[location_];
-        order = epoch_data[epoch_].location_orders[location_];
-    }
-
     /// @notice Distribute emissions tokens to each locations contributions contract and initializes the next epoch.
-    /// @dev Only callable by address with System Admin permissions. Must be called after the epoch has elapsed. Must be called after a score report is generated for each location (or no locations for equal split). Pulls as many tokens as able from the treasury to split between location contribution emissions contracts.
-    function distributeRewards() external isSystemsAdmin {
+    /// @dev Only callable by address with System Admin permissions. Must be called after the epoch has elapsed. 
+    function distributeRewards(string[] memory locations_, uint256[] memory location_reward_shares_) external isSystemsAdmin {
         require(next_epoch <= block.timestamp, "NOT YET NEXT EPOCH");
-
-        EpochData storage _epoch_data = epoch_data[current_epoch];
-        require(award_tiers_bps.length == locations.length, "AWARD TIERS MISMATCH");
-
-        uint256 _amount = token.balanceOf(treasury);
-        if(_amount > token.allowance(treasury, address(this))) {
-            _amount = token.allowance(treasury, address(this));
+        uint256 _length = locations_.length;
+        require(_length == location_reward_shares_.length, "INPUT MISMATCH");
+        
+        uint256 _amount;
+        for(uint256 i = 0; i < _length; i++) {
+            _amount += location_reward_shares_[i];
         }
-        require(_amount > 0, "NOTHING TO DISTRIBUTE");
+
+        require(_amount > token.allowance(treasury, address(this)), "NOT ENOUGH TO DISTRIBUTE");
         
         bool _success = token.transferFrom(treasury, address(this), _amount);
         require(_success);
         
-        uint256 _balance = token.balanceOf(address(this));
         uint256 _duration = EPOCH; //If somehow the epoch was not initialized for an entire epoch span, default to 1 EPOCH in the future
-        if((next_epoch + EPOCH) > block.timestamp) {
-            _duration = (next_epoch + EPOCH) - block.timestamp;
+        if((next_epoch + _duration) > block.timestamp) {
+            _duration = (next_epoch + _duration) - block.timestamp;
         }
-
-        require(_balance > 0, "NOTHING TO DISTRIBUTE");
         
-        bool _any_zero_order = false;
-        for(uint256 i = 0; i < locations.length; i++) {
-            string memory _location = locations[i];
+        for(uint256 i = 0; i < locations_.length; i++) {
+            string memory _location = locations_[i];
             require(address(location_rewards[_location]) != address(0), "HOUSE DOESNT EXIST");
-
-            uint256 _order = _epoch_data.location_orders[_location];
-            uint256 _share = _balance / locations.length; //_share defaults to an even split
-            if(_order > 0) { //_order is expected to be zero if the location does not have a reported score
-                require(!_any_zero_order, "MISSING HOUSE SCORE");
-                _share = (_balance * award_tiers_bps[_order - 1]) / 1000;
-            } else if(!_any_zero_order) {  //_order of 0 is acceptable if ALL entry's _order is zero 
-                require(i == 0, "MISSING HOUSE SCORE");
-                _any_zero_order = true;
-            }
-
+            uint256 _share = location_reward_shares_[i];
             location_rewards[_location].setRewardsDuration(_duration);
-            token.transfer(address(location_rewards[_location]), _share);
+            bool success = token.transfer(address(location_rewards[_location]), _share);
+            require(success, "TRANSFER FAILED");
             location_rewards[_location].notifyRewardAmount(_share);
         }
 

@@ -37,6 +37,7 @@ contract SCMetagameLocationRewards is StakingRewards {
         metagame_data = ISCMetagameDataSource(metagame_data_);
         location_id = location_id_;
         access_pass = ISCAccessPass(access_pass_);
+        rewardsDuration = 0;
     }
 
     /// @notice Identical to base contract except that only specific users may deposit tokens. See {StakingRewards-stake}.
@@ -56,6 +57,11 @@ contract SCMetagameLocationRewards is StakingRewards {
         emit Staked(msg.sender, amount_);
     }
 
+    function informUpdateMultiplier(address addr_) public 
+    {
+        //Need to implement function that forces multiplier to update when data source updates.
+    }
+
     function updateMultiplier(address addr_) internal returns (uint256 _mult_bp)
     {
 	    _mult_bp = metagame_data.getMultiplier(addr_, location_id);
@@ -72,7 +78,7 @@ contract SCMetagameLocationRewards is StakingRewards {
     function withdraw(uint256 amount) public override nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
 
-	    uint256 _mult_bp = updateMultiplier(msg.sender);
+	    uint256 _mult_bp = _multiplier_basis_points[msg.sender];
 	
         _totalSupply = _totalSupply - ((amount * _mult_bp) / 10000);
         _balances[msg.sender] = _balances[msg.sender] - amount;
