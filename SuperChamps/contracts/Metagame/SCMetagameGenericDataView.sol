@@ -54,7 +54,7 @@ contract SCMetagameGenericDataView is ISCMetagameDataSource, SCPermissionedAcces
     function getMembership(address addr_, string memory location_) external view returns (bool) {
         if(location_views[location_] == ISCMetagameDataSource(address(0))) {
             //Default to check and see if player's hometown matches the location
-            return keccak256(bytes(metadata_registry.metadataFromAddress(addr_, HOMETOWN_ID))) == 
+            return keccak256(bytes(metadata_registry.metadataString(addr_, HOMETOWN_ID))) == 
                    keccak256(bytes(location_));
         } else {
             return location_views[location_].getMembership(addr_, location_);
