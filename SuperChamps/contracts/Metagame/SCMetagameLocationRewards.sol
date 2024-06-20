@@ -49,7 +49,7 @@ contract SCMetagameLocationRewards is StakingRewards {
     /// @param addr_ Address of the staker who needs to have their multiplier updated
     /// @notice Updates an accounts bonus multiplier from the metagame metadata system.
     /// @dev Underlying balance is assumed to be stored as a pre-multiplied quantity.
-    function updateMultiplier(address addr_) public updateReward(msg.sender) returns (uint256 _mult_bp)
+    function updateMultiplier(address addr_) public updateReward(addr_) returns (uint256 _mult_bp)
     {
 	    _mult_bp = metagame_data.getMultiplier(addr_, location_id);
 
@@ -74,7 +74,14 @@ contract SCMetagameLocationRewards is StakingRewards {
         staked_supply += amount_;
         user_stakes[msg.sender] += amount_;
 
-        uint256 multiplied_amount_ = amount_ * _multiplier_basis_points[msg.sender];
+        uint256 _mbp = _multiplier_basis_points[msg.sender];
+
+        if(_mbp == 0) {
+            _mbp = metagame_data.getMultiplier(msg.sender, location_id);
+            _multiplier_basis_points[msg.sender] = _mbp;
+        }
+
+        uint256 multiplied_amount_ = amount_ * _mbp;
         _totalSupply += multiplied_amount_;
         _balances[msg.sender] += multiplied_amount_;
 
