@@ -66,7 +66,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
             _user_to_approved_spend[staker_][msg.sender] -= amount_;
         }
 
-        uint256 _balance = _unstake(amount_, msg.sender, receiver_);
+        uint256 _balance = _unstake(amount_, staker_, receiver_);
         emit SpendFromStake(staker_, amount_, _balance);
     }
 
