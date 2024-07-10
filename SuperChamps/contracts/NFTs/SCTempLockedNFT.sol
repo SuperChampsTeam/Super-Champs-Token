@@ -13,8 +13,8 @@ import "../../interfaces/IERC721MetadataRenderer.sol";
 
 /// @title Super Champs (CHAMP) Temporarily Transfer Locked NFT
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
-/// @dev Token transfers are restricted to addresses that have the Transer Admin permission until the CHAMP token is unlocked.
-/// @notice This is a standard ERC721 token contract that restricts token transfers before the protocol token is unlocked. Trades still possible via Shop/Marketplace system, but limited to sales denominated in CHAMP.
+/// @dev Token transfers are restricted to addresses that have the Transer Admin permission until the token/collection is unlocked.
+/// @notice This is a standard ERC721 token contract that restricts token transfers before the token is unlocked. Trades still possible via Shop/Marketplace system.
 contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     /// @notice The metadata renderer contract.
     IERC721MetadataRenderer private _renderer;
@@ -22,12 +22,14 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     ///@notice The protocol token;
     ISuperChampsToken public immutable champ_token;
 
-    /// @notice The token ID counter
-    uint256 private _tokenIdCounter = 1;
+    /// @notice Set of token IDs which are tradeable
+    mapping(uint256 => bool) _unlocked_tokens;
+
+    bool _all_unlocked;
 
     ///@notice A function modifier that restricts to Transfer Admins until transfersLocked is set to true.
-    modifier isAdminOrUnlocked() {
-        require(!champ_token.transfersLocked() || 
+    modifier isAdminOrUnlocked(uint256 token_id_) {
+        require(_all_unlocked || _unlocked_tokens[token_id_] || 
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, _msgSender()) ||
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, tx.origin),
                 "NOT YET UNLOCKED");
@@ -36,17 +38,15 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
 
     ///@param name_ String representing the token's name.
     ///@param symbol_ String representing the token's symbol.
-    ///@param champ_token_ The protocol token.
+    ///@param permissions_ The protocol permissions manager.
     constructor(
         string memory name_,
         string memory symbol_,
         string memory uri_,
-        ISuperChampsToken champ_token_
+        address permissions_
     ) 
-        ERC721(name_, symbol_) SCPermissionedAccess(address(champ_token_.permissions()))
+        ERC721(name_, symbol_) SCPermissionedAccess(permissions_)
     {
-        champ_token = champ_token_;
-        permissions = champ_token_.permissions();
         _renderer = new SCGenericRenderer(permissions, name_, symbol_, uri_);
     }
 
@@ -55,16 +55,13 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     /// @param renderer_ The new renderer contract. Must conform to IERC721MetadataRenderer.
     function setRenderer(address renderer_) external isSystemsAdmin {
         _renderer = IERC721MetadataRenderer(renderer_);
-        
     }
 
     /// @notice Mints an NFT to a recipient.
     /// @dev Callable only by Systems Admin. Sales costs and administration should be performed off-chain or in a separate sales contract.
     /// @param recipient_ The token recipient.
-    function mintTo(address recipient_) external isSystemsAdmin {
-        uint256 _tokenId = _tokenIdCounter;
-        _safeMint(recipient_, _tokenId);
-        _tokenIdCounter++;
+    function mintTo(address recipient_, uint256 token_id_) external isSystemsAdmin {
+        _safeMint(recipient_, token_id_);
     }
 
     ///@notice Identical to standard transferFrom function, except that transfers are restricted to Admins until transfersLocked is set. 
@@ -72,8 +69,25 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
         address from_, 
         address to_, 
         uint256 token_id_
-    ) public override isAdminOrUnlocked {
+    ) public override isAdminOrUnlocked(token_id_) {
         return super.transferFrom(from_, to_, token_id_);
+    }
+
+    ///@notice Used to unlock specific token ids for trading
+    ///@param token_ids_ A list of token ids that are to be unlocked
+    function unlockTokens(
+        uint256[] memory token_ids_
+    ) public isSystemsAdmin {
+        uint256 len = token_ids_.length - 1;
+        for(uint256 i = len; i >= 0; i--) {
+            _unlocked_tokens[token_ids_[i]] = true;
+        }
+    }
+
+    ///@notice Used to lock/unlock all tokens in the collection for trading
+    ///@param unlocked_ The unlock state that is to be set
+    function unlockCollection(bool unlocked_) public isSystemsAdmin {
+        _all_unlocked = unlocked_;
     }
 
     /// @notice Transfer tokens that have been sent to this contract by mistake.

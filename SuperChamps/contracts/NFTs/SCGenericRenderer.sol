@@ -26,7 +26,7 @@ contract SCGenericRenderer is IERC721MetadataRenderer {
     string _uri;
 
     ///@notice Toggle that switches to render using concatenated token IDs.
-    bool _concatenate_ids;
+    bool _concatenate_ids = true;
 
     ///@notice A function modifier that restrics calls to addresses with the Systems Admin permission set.
     modifier isSystemsAdmin() {
