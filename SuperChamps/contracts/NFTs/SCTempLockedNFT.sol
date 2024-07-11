@@ -22,14 +22,27 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     ///@notice The protocol token;
     ISuperChampsToken public immutable champ_token;
 
+    /// @notice Token IDs to Type
+    mapping(uint256 => uint256) public _token_species;
+
     /// @notice Set of token IDs which are tradeable
-    mapping(uint256 => bool) _unlocked_tokens;
+    mapping(uint256 => bool) public _unlocked_tokens;
+
+    /// @notice Set of token species which are tradeable
+    mapping(uint256 => bool) public _unlocked_species;
+
+    /// @notice Set of token groups which are tradeable
+    mapping(uint128 => bool) public _unlocked_groups;
 
     bool _all_unlocked;
 
     ///@notice A function modifier that restricts to Transfer Admins until transfersLocked is set to true.
     modifier isAdminOrUnlocked(uint256 token_id_) {
-        require(_all_unlocked || _unlocked_tokens[token_id_] || 
+        uint256 _species = _token_species[token_id_];
+        uint128 _group = uint128(_species >> 128);
+
+        require(_all_unlocked || 
+                _unlocked_species[_species] || _unlocked_groups[_group] || _unlocked_tokens[token_id_] || 
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, _msgSender()) ||
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, tx.origin),
                 "NOT YET UNLOCKED");
@@ -60,8 +73,10 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     /// @notice Mints an NFT to a recipient.
     /// @dev Callable only by Systems Admin. Sales costs and administration should be performed off-chain or in a separate sales contract.
     /// @param recipient_ The token recipient.
-    function mintTo(address recipient_, uint256 token_id_) external isSystemsAdmin {
+    function mintTo(address recipient_, uint256 token_id_, uint128 species_, uint128 group_) external isSystemsAdmin {
         _safeMint(recipient_, token_id_);
+        uint256 _species = (group_ << 128) | species_;
+        _token_species[token_id_] = _species;
     }
 
     ///@notice Identical to standard transferFrom function, except that transfers are restricted to Admins until transfersLocked is set. 
@@ -82,6 +97,25 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
         for(uint256 i = len; i >= 0; i--) {
             _unlocked_tokens[token_ids_[i]] = true;
         }
+    }
+
+    ///@notice Used to unlock a group of SBTs for trading
+    ///@param group_ A group id that is to be unlocked
+    function unlockTokenGroup(
+        uint128 group_
+    ) public isSystemsAdmin {
+        _unlocked_groups[group_] = true;
+    }
+
+    ///@notice Used to unlock a species of SBT for trading
+    ///@param species_ A species id that is to be unlocked
+    ///@param group_ The group id that the species belongs to
+    function unlockTokenSpecies(
+        uint128 species_,
+        uint128 group_
+    ) public isSystemsAdmin {
+        uint256 _full_species = (group_ << 128) | species_;
+        _unlocked_species[_full_species] = true;
     }
 
     ///@notice Used to lock/unlock all tokens in the collection for trading
