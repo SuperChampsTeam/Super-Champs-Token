@@ -149,8 +149,15 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        _requireOwned(tokenId);
-        return _renderer.tokenURI(tokenId);
+    function tokenURI(uint256 token_id_) public view override returns (string memory) {
+        _requireOwned(token_id_);
+        uint256[] memory _token_id_elements = new uint256[](3);
+        uint256 _species_group = _token_species[token_id_];
+        uint128 _species = uint128(_species_group);
+        uint128 _group = uint128(_species_group >> 128);
+        _token_id_elements[0] = _group;
+        _token_id_elements[1] = _species;
+        _token_id_elements[2] = token_id_;
+        return _renderer.tokenURI(_token_id_elements);
     }
 }
