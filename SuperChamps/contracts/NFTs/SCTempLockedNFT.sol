@@ -16,6 +16,12 @@ import "../../interfaces/IERC721MetadataRenderer.sol";
 /// @dev Token transfers are restricted to addresses that have the Transer Admin permission until the token/collection is unlocked.
 /// @notice This is a standard ERC721 token contract that restricts token transfers before the token is unlocked. Trades still possible via Shop/Marketplace system.
 contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
+    struct TokenData {
+        uint96 group;
+        uint96 species;
+        uint64 expiry;
+    }
+
     /// @notice The metadata renderer contract.
     IERC721MetadataRenderer private _renderer;
     
@@ -23,7 +29,7 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     ISuperChampsToken public immutable champ_token;
 
     /// @notice Token IDs to Type
-    mapping(uint256 => uint256) public _token_species;
+    mapping(uint256 => TokenData) public _token_data;
 
     /// @notice Set of token IDs which are tradeable
     mapping(uint256 => bool) public _unlocked_tokens;
@@ -38,14 +44,11 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
 
     ///@notice A function modifier that restricts to Transfer Admins until transfersLocked is set to true.
     modifier isAdminOrUnlocked(uint256 token_id_) {
-        uint256 _species = _token_species[token_id_];
-        uint128 _group = uint128(_species >> 128);
-
-        require(_all_unlocked || 
-                _unlocked_species[_species] || _unlocked_groups[_group] || _unlocked_tokens[token_id_] || 
+        
+        require(isUnlocked(token_id_) || 
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, _msgSender()) ||
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, tx.origin),
-                "NOT YET UNLOCKED");
+                "NOT UNLOCKED");
         _;
     }
 
@@ -73,10 +76,16 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     /// @notice Mints an NFT to a recipient.
     /// @dev Callable only by Systems Admin. Sales costs and administration should be performed off-chain or in a separate sales contract.
     /// @param recipient_ The token recipient.
-    function mintTo(address recipient_, uint256 token_id_, uint128 species_, uint128 group_) external isSystemsAdmin {
+    /// @param token_id_ The id of the token
+    /// @param species_ The template of the token's metadata identity
+    /// @param group_ The group that the species_ belongs to
+    /// @param expiry_ The timestamp at which the token expires
+    /// @dev If expiry_ is 0, the token does not expire
+    function mintTo(address recipient_, uint256 token_id_, uint96 species_, uint96 group_, uint64 expiry_) external isSystemsAdmin {
+        require(expiry_ == 0 || expiry_ > block.timestamp, "CANNOT MINT EXPIRED");
         _safeMint(recipient_, token_id_);
-        uint256 _species = (group_ << 128) | species_;
-        _token_species[token_id_] = _species;
+        TokenData memory _data = TokenData(group_, species_, expiry_);
+        _token_data[token_id_] = _data;
     }
 
     ///@notice Identical to standard transferFrom function, except that transfers are restricted to Admins until transfersLocked is set. 
@@ -86,6 +95,33 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
         uint256 token_id_
     ) public override isAdminOrUnlocked(token_id_) {
         return super.transferFrom(from_, to_, token_id_);
+    }
+
+    ///@notice Adds extra seconds to a specific token's expiry time
+    ///@param token_id_ The id of the token which is to have its expiry time extended
+    ///@param add_seconds_ The number of seconds to add to the token's expiry time
+    ///@dev This cannot effect a token with expiry of 0, as this indicates the token never expires
+    ///@dev The new expiry time must be in the future
+    function extendExpiry(uint256 token_id_, uint64 add_seconds_) public isSystemsAdmin {
+        uint64 _expiry = _token_data[token_id_].expiry;
+        require(_expiry > 0, "CANNOT EXTEND NON-EXPIRING TOKEN");
+
+        _expiry += add_seconds_;
+        require(_expiry > block.timestamp, "NOT ENOUGH TIME");
+        
+        _token_data[token_id_].expiry = _expiry;
+    }
+
+    ///@notice Burns tokens that are expired.
+    ///@param expired_token_ids_ A list of token ids which are to be cleaned up (burned)
+    function cleanup(uint256[] memory expired_token_ids_) public isSystemsAdmin {
+        for(uint256 i = 0; i < expired_token_ids_.length; i++) {
+            uint256 _token_id = expired_token_ids_[i];
+            uint256 _expired = _token_data[_token_id].expiry;
+            if(_expired > 0 && _expired < block.timestamp) {
+                _burn(_token_id);
+            }
+        }
     }
 
     ///@notice Used to unlock specific token ids for trading
@@ -124,6 +160,16 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
         _all_unlocked = unlocked_;
     }
 
+    ///@notice Returns the unlocked state of a specific token
+    ///@param token_id_ The token id to query
+    function isUnlocked(uint256 token_id_) public view returns (bool _unlocked_) {
+        TokenData memory _data = _token_data[token_id_];
+        _unlocked_ = _all_unlocked || 
+                     _unlocked_species[_data.species] || 
+                     _unlocked_groups[_data.group] || 
+                     _unlocked_tokens[token_id_];
+    }
+
     /// @notice Transfer tokens that have been sent to this contract by mistake.
     /// @dev Only callable by address with Global Admin permissions. Cannot be called to withdraw emissions tokens.
     /// @param tokenAddress_ The address of the token to recover
@@ -146,18 +192,28 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
         return _renderer.symbol();
     }
 
+    function _ownerOf(uint256 token_id_) internal override view returns (address _owner_) {
+        uint64 _expiry = _token_data[token_id_].expiry;
+        if(_expiry > 0 && _expiry < block.timestamp) {
+            _owner_ = address(0);
+        } else {
+            _owner_ = super._ownerOf(token_id_);
+        }
+    }
+
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 token_id_) public view override returns (string memory) {
         _requireOwned(token_id_);
+
+        TokenData memory _data = _token_data[token_id_];        
         uint256[] memory _token_id_elements = new uint256[](3);
-        uint256 _species_group = _token_species[token_id_];
-        uint128 _species = uint128(_species_group);
-        uint128 _group = uint128(_species_group >> 128);
-        _token_id_elements[0] = _group;
-        _token_id_elements[1] = _species;
+        _token_id_elements[0] = _data.group;
+        _token_id_elements[1] = _data.species;
         _token_id_elements[2] = token_id_;
+        _token_id_elements[3] = _data.expiry;
+        
         return _renderer.tokenURI(_token_id_elements);
     }
 }
