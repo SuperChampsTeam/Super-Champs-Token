@@ -83,7 +83,6 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
     /// @dev If expiry_ is 0, the token does not expire
     function mintTo(address recipient_, uint256 token_id_, uint96 species_, uint96 group_, uint64 expiry_) external isSystemsAdmin {
         require(expiry_ == 0 || expiry_ > block.timestamp, "CANNOT MINT EXPIRED");
-        require(_token_data[token_id_].group == 0 && _token_data[token_id_].species == 0, "ALREADY MINTED");
         _safeMint(recipient_, token_id_);
         TokenData memory _data = TokenData(group_, species_, expiry_);
         _token_data[token_id_] = _data;
