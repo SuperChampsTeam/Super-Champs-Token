@@ -208,7 +208,7 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
         _requireOwned(token_id_);
 
         TokenData memory _data = _token_data[token_id_];        
-        uint256[] memory _token_id_elements = new uint256[](3);
+        uint256[] memory _token_id_elements = new uint256[](4);
         _token_id_elements[0] = _data.group;
         _token_id_elements[1] = _data.species;
         _token_id_elements[2] = token_id_;
