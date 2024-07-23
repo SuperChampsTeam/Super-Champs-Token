@@ -99,4 +99,11 @@ contract SCAccessPassRenderer is IERC721MetadataRenderer {
             return string.concat(_uri, string.concat("/",_level.toString()));
         }
     }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256[] memory token_id_elements_) public view override returns (string memory) {
+        return tokenURI(token_id_elements_[0]);
+    }
 }
