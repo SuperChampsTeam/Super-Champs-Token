@@ -24,9 +24,6 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
 
     /// @notice The metadata renderer contract.
     IERC721MetadataRenderer private _renderer;
-    
-    ///@notice The protocol token;
-    ISuperChampsToken public immutable champ_token;
 
     /// @notice Token IDs to Type
     mapping(uint256 => TokenData) public _token_data;
@@ -44,9 +41,9 @@ contract SCTempLockedNFT is ERC721, SCPermissionedAccess {
 
     ///@notice A function modifier that restricts to Transfer Admins until transfersLocked is set to true.
     modifier isAdminOrUnlocked(uint256 token_id_) {
-        
         require(isUnlocked(token_id_) || 
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, _msgSender()) ||
+                permissions.hasRole(IPermissionsManager.Role.SYSTEMS_ADMIN, _msgSender()) ||
                 permissions.hasRole(IPermissionsManager.Role.TRANSFER_ADMIN, tx.origin),
                 "NOT UNLOCKED");
         _;
