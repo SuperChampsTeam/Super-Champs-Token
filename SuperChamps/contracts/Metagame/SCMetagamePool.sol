@@ -130,6 +130,6 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
         _checkpoints.push(_current_ts);
         _user_to_checkpoint_to_balance[staker_][_current_ts] = _balance;
 
-        emit Stake(staker_, amount_, _balance);
+        emit Stake(staker_, msg.sender, amount_, _balance);
     }
 }

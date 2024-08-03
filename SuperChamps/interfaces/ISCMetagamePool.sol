@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice Interface for staking pool for Super Champ tokens metagame.
 interface ISCMetagamePool{
-    event Stake(address staker, uint256 amount, uint256 balance);
+    event Stake(address staker, address source, uint256 amount, uint256 balance);
     event Unstake(address staker, uint256 amount, uint256 balance);
     event SpendFromStake(address staker, uint256 amount, uint256 balance);
 
