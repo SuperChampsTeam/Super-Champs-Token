@@ -242,7 +242,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         returns (uint256)
     {
         require(claimed_rewards[season_id_][msg.sender] == 0, "REWARD CLAIMED");
-        require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
+        //require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
 
         Season storage _season = seasons[season_id_];
         require(isSeasonClaimingActive(_season, block.timestamp), "SEASON_CLAIM_ENDED");
@@ -287,10 +287,10 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         uint256 season_id_
     ) public view returns(uint256 _reward) 
     {
-        _reward = season_rewards[season_id_][msg.sender];
+        _reward = season_rewards[season_id_][msg.sender] - claimed_rewards[season_id_][msg.sender];
         Season storage _season = seasons[season_id_];
-        if( !isSeasonClaimingActive(_season, block.timestamp) || 
-            !access_pass.isVerified(msg.sender)) 
+        if( !isSeasonClaimingActive(_season, block.timestamp) ) //|| 
+            //!access_pass.isVerified(msg.sender)) 
         {
             _reward = 0;
         }
