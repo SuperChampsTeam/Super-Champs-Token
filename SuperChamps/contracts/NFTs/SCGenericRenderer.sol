@@ -26,7 +26,7 @@ contract SCGenericRenderer is IERC721MetadataRenderer {
     string _uri;
 
     ///@notice Toggle that switches to render using concatenated token IDs.
-    bool _concatenate_ids;
+    bool _concatenate_ids = true;
 
     ///@notice A function modifier that restrics calls to addresses with the Systems Admin permission set.
     modifier isSystemsAdmin() {
@@ -75,10 +75,35 @@ contract SCGenericRenderer is IERC721MetadataRenderer {
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 token_id_) public view override returns (string memory) {
+    function tokenURI(uint256 token_id_) public view override returns (string memory _uri_) {
         if(_concatenate_ids) 
         {
-            return bytes(_uri).length > 0 ? string.concat(_uri, token_id_.toString()) : "";
+            if(bytes(_uri).length > 0) {
+                return string.concat(_uri, token_id_.toString());
+            } else {
+                return "";
+            }
+        } 
+        else 
+        {
+            return _uri;
+        }
+    }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256[] memory token_id_elements_) public view returns (string memory _uri_) {
+        if(_concatenate_ids) 
+        {
+            if(bytes(_uri).length > 0) {
+                _uri_ = _uri;
+                for(uint256 i = 0; i < token_id_elements_.length; i++) {
+                    _uri_ = string.concat(_uri_,"/",token_id_elements_[i].toString());
+                }
+            } else {
+                _uri_ = "";
+            }
         } 
         else 
         {

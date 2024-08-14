@@ -22,4 +22,9 @@ interface IERC721MetadataRenderer {
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
     function tokenURI(uint256 tokenId) external view returns (string memory);
+
+    /**
+     * @dev Returns the Uniform Resource Identifier (URI) for a token with multiple identifying elements.
+     */
+    function tokenURI(uint256[] memory token_id_elements_) external view returns (string memory);
 }
