@@ -52,7 +52,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @param amount_ Quantity of tokens to approve spending
     /// @dev This mirrors approve(...) defined in ERC20 standard
     function approve(address spender_, uint256 amount_) external {
-        _user_to_approved_spend[msg.sender][spender_] += amount_;
+        _user_to_approved_spend[msg.sender][spender_] = amount_;
     }
 
     /// @notice Spend tokens from a stakers staked tokens
