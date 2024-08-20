@@ -110,7 +110,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward) external override onlyRewardsDistribution updateReward(address(0)) {
+    function notifyRewardAmount(uint256 reward) external virtual override onlyRewardsDistribution updateReward(address(0)) {
         if (timestamp() >= periodFinish) {
             rewardRate = reward / rewardsDuration;
         } else {
