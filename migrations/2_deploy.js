@@ -6,10 +6,11 @@ const SCSeasonRewards = artifacts.require('SCSeasonRewards');
 const PermissionsManager = artifacts.require('PermissionsManager');
 const SuperChampsToken = artifacts.require('SuperChampsToken');
 const ExponentialVestingEscrow = artifacts.require('ExponentialVestingEscrow');
+const SCMetaGamePool = artifacts.require('SCMetaGamePool');
 
-var superchampFoundationAddress = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1" //ATTENTION: update in SCDeploymentHelper contract also. 
-var sysAdminKmsAddress = "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"
-var emissionATreasury = "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+var superchampFoundationAddress = "0x62500Df60073E22C5FF833ae855F7922Bb4c0A88" //ATTENTION: update in SCDeploymentHelper contract also. 
+var sysAdminKmsAddress = "0xb5B968c31832800eCfedebb05fE1Fe741d387BF4"
+var emissionATreasury = "0x2Af9a14bcA18A21eD9ADC08Bbf99b93977F0Ad73"
 var treasuryForQuest = emissionATreasury
 var treasuryForSeason = treasuryForQuest
 
@@ -53,7 +54,7 @@ module.exports = async function (deployer) {
 
 
   console.log("scDeploymentHelper.initializeEmission calling")
-  const thirtyDayInPastForQuestEmission = Math.floor(Date.now() / 1000) - (30*24*3600)
+  const thirtyDayInPastForQuestEmission = Math.floor(Date.now() / 1000) - (29*30*24*3600)
   const emissionATreasuryAmount = new BN('115000000000000000000000000');
   const emissionContractDeploymentAddress = await scDeploymentHelper.initializeEmmissions.call(emissionATreasury, emissionATreasuryAmount, thirtyDayInPastForQuestEmission, { from: superchampFoundationAddress }) //todo review amount
   console.log("emissionContractDeploymentAddress: " + emissionContractDeploymentAddress);
@@ -64,8 +65,11 @@ module.exports = async function (deployer) {
   console.log('scDeploymentHelper.initializeEmission tx details:');
   console.log(txDetails);
 
-  
-  await deployer.deploy(SCSeasonRewards, pAddress, tokenAddress, treasuryForSeason, scAccessPass.address);
+  await deployer.deploy(SCMetaGamePool, pAddress, tokenAddress);
+  const scMetaGamePool = await SCMetaGamePool.deployed();
+  console.log("SCMetaGamePool deployed " + scMetaGamePool.address);
+
+  await deployer.deploy(SCSeasonRewards, pAddress, tokenAddress, treasuryForSeason, scAccessPass.address, scMetaGamePool.address);
   const scSeasonRewards = await SCSeasonRewards.deployed();
   console.log("scSeasonRewards deployed " + scSeasonRewards.address);
 
