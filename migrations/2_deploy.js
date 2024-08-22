@@ -48,14 +48,14 @@ module.exports = async function (deployer) {
   const transferLockERC20 = await SuperChampsToken.at(tokenAddress);
   console.log("transferLockERC20");
   var BN = web3.utils.BN;
-  const approveAmount = new BN('230000000000000000000000000');
+  const approveAmount = new BN('250000000000000000000000000');
   const receipt2 = await transferLockERC20.approve(scDeploymentHelperAddress, approveAmount, { from: superchampFoundationAddress }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
   console.log("transferLockERC20 success")
 
 
   console.log("scDeploymentHelper.initializeEmission calling")
-  const thirtyDayInPastForQuestEmission = Math.floor(Date.now() / 1000) - (29*30*24*3600)
-  const emissionATreasuryAmount = new BN('115000000000000000000000000');
+  const thirtyDayInPastForQuestEmission = Math.floor(Date.now() / 1000);// - (29*30*24*3600)
+  const emissionATreasuryAmount = new BN('135000000000000000000000000');
   const emissionContractDeploymentAddress = await scDeploymentHelper.initializeEmmissions.call(emissionATreasury, emissionATreasuryAmount, thirtyDayInPastForQuestEmission, { from: superchampFoundationAddress }) //todo review amount
   console.log("emissionContractDeploymentAddress: " + emissionContractDeploymentAddress);
   const emissionReceipt = await scDeploymentHelper.initializeEmmissions(emissionATreasury, emissionATreasuryAmount, thirtyDayInPastForQuestEmission, { from: superchampFoundationAddress }) //todo review amount
@@ -77,12 +77,23 @@ module.exports = async function (deployer) {
   const unclaimedAmount = await exponentialVestingEscrow.unclaimed();
   console.log("unclaimedAmount: " + unclaimedAmount);
 
-  const claimedAmountTx = await exponentialVestingEscrow.claim(treasuryForSeason, unclaimedAmount);
+  /*const claimedAmountTx = await exponentialVestingEscrow.claim(treasuryForSeason, unclaimedAmount);
   console.log("claimedAmountTx success reciept :")
   console.log(claimedAmountTx)
   const claimedAmountTxDetails = await web3.eth.getTransaction(claimedAmountTx.tx);
   console.log('claimedAmountTx tx details:');
-  console.log(claimedAmountTxDetails);
+  console.log(claimedAmountTxDetails);*/
+
+  const initialRewardAmount = new BN('50000000000000000000000000');
+
+  await transferLockERC20.approve(treasuryForSeason, initialRewardAmount, { from: superchampFoundationAddress });
+  console.log("transferLockERC20 approve success to contract treasuryForSeason")
+
+  await transferLockERC20.transfer(treasuryForSeason, initialRewardAmount, { from: superchampFoundationAddress });
+  console.log("transferLockERC20 transfer success to contract treasuryForSeason")
+
+  const newBalance = await transferLockERC20.balanceOf(treasuryForSeason);
+  console.log("transferLockERC20 contract treasuryForSeason balance: " + newBalance);
 
 
   const receipt3 = await transferLockERC20.approve(scSeasonRewards.address, emissionATreasuryAmount, { from: treasuryForSeason }) //todo review amount //todo not full sure whether this code will actually  perform tx from superchampFoundationAddress address
