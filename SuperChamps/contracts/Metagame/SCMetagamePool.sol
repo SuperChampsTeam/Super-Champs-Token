@@ -16,6 +16,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     IERC20 public immutable token;
 
     mapping(address => mapping(uint256 => uint256)) _user_to_checkpoint_to_balance;
+    mapping(address => mapping(uint256 => uint256)) _user_to_checkpoint_to_action;
     mapping(address => uint256[]) _user_checkpoints;
 
     mapping(address => mapping(address => uint256)) _user_to_approved_spend;
@@ -33,6 +34,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
             revert UnableToTransferTokens(msg.sender, amount_);
         }
         _stake(msg.sender, amount_);
+        _user_to_checkpoint_to_action[staker_][block.timestamp] = 0;//represent stake
     }
 
     /// @notice Stake tokens for another address
@@ -45,6 +47,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
             revert UnableToTransferTokens(msg.sender, amount_);
         }
         _stake(staker_, amount_);
+        _user_to_checkpoint_to_action[staker_][block.timestamp] = 1;//represent stakeFor
     }
 
     /// @notice Approve an address to spend staked tokens
@@ -67,6 +70,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
         }
 
         uint256 _balance = _unstake(amount_, staker_, receiver_);
+        _user_to_checkpoint_to_action[staker_][block.timestamp] = 3;//represent spend
         emit SpendFromStake(staker_, amount_, _balance);
     }
 
@@ -75,6 +79,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @dev This triggers an Unstake event which can cause penalties in the metagame
     function unstake(uint256 amount_) external {
         uint256 _balance = _unstake(amount_, msg.sender, msg.sender);
+        _user_to_checkpoint_to_action[staker_][block.timestamp] = 2;//represent unstake
         emit Unstake(msg.sender, amount_, _balance);
     }
 
