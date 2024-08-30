@@ -13,6 +13,8 @@ contract SCVirtualAssetEvents {
 
     event GameUserAsset(string user_id, string asset_id, int256 delta, string data);
     event GameUserActivity(string user_id, string data);
+    event GameUserAssetWithSign(string user_id, string asset_id, int256 delta, string data, string sign);
+    event GameUserActivityWithSign(string user_id, string data, string sign);
 
     modifier isPermissionedUser() {
         require(_factory.permissions_users(msg.sender), "NOT PERMISSIONED USER");
@@ -30,6 +32,14 @@ contract SCVirtualAssetEvents {
 
     function EmitGameUserActivity(string memory user_id, string memory data) external isPermissionedUser {
         emit GameUserActivity(user_id, data);
+    }
+
+    function EmitGameUserAssetWithSign(string memory user_id, string memory asset_id, int256 delta, string memory data, string memory sign) external {
+        emit GameUserAssetWithSign(user_id, asset_id, delta, data, sign);
+    }
+
+    function EmitGameUserActivityWithSign(string memory user_id, string memory data, string memory sign) external {
+        emit GameUserActivityWithSign(user_id, data, sign);
     }
 }
 
