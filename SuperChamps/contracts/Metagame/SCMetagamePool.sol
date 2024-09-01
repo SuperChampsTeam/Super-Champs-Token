@@ -99,17 +99,19 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @notice Returns the list of all of the users staking checkpoint timestamps
     /// @param staker_ Address of the staker
     function checkpoint_timestamps_range(address staker_, uint256 start_, uint256 count_) public view returns (uint256[] memory _user_checkpoints_) {
-        _user_checkpoints_ = new uint256[](count_);
-        uint256 len = _user_checkpoints[staker_].length;
-        if (count_+ start_ < len) {
-            len = count_+ start_;
+        uint256 totalCheckpoints = _user_checkpoints[staker_].length;
+        require(start_ < totalCheckpoints, "Start index out of bounds");
+        uint256 end = start_ + count_;
+        if (end > totalCheckpoints) {
+            end = totalCheckpoints;
         }
-        for(uint256 i = start_; i < len; i++) {
-            _user_checkpoints_[i] = _user_checkpoints[staker_][i];
+        _user_checkpoints_ = new uint256[](end - start_);
+        for (uint256 i = start_; i < end; i++) {
+            _user_checkpoints_[i - start_] = _user_checkpoints[staker_][i];
         }
     }
 
-    /// @notice Returns the list of all of the user's checkpoint balances from a list of timestamps
+    /// @notice Returns the list of all of the user's checkpoint data from a list of timestamps
     /// @param staker_ Address of the staker
     /// @param checkpoint_timestamps_ A list of checkpoints timestamps, retrievable with checkpoint_timestamps(...)
     function checkpoints(address staker_, uint256[] memory checkpoint_timestamps_) public view returns (StakingData[] memory _data_) {
@@ -128,6 +130,8 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
             uint256 _last_ts = _checkpoints[_checkpoints.length-1];
             _balance += _user_to_checkpoint_to_data[staker_][_last_ts].balance;
         }
+
+        require(balance >= amount_, "Insufficient balance");
 
         _balance -= amount_;
         bool success = token.transfer(receiver_, amount_);
