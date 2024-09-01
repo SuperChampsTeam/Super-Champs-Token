@@ -18,12 +18,6 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
         uint256 balance;
         address msg_sender;
     }
-    enum Action {
-        CLAIM_STAKE,
-        STAKE,
-        UNSTAKE,
-        SPEND_STAKE
-    }
 
     IERC20 public immutable token;
 
@@ -75,11 +69,12 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @dev This is expected to be called from the spending contract, which must be first permissioned through a direct call to approve(...)
     function spend(uint256 amount_, address staker_, address receiver_) external {
         if(staker_ != msg.sender) {
+            uint256 approvedAmount = _user_to_approved_spend[staker_][msg.sender];
+            require(approvedAmount >= amount_, "Insufficient allowance");
             _user_to_approved_spend[staker_][msg.sender] -= amount_;
         }
-        require(receiver_ != staker_, "NOT ALLOWED");
         uint256 _balance = _unstake(amount_, staker_, receiver_);
-        emit SpendFromStake(staker_, amount_, _balance);
+        emit SpendFromStake(staker_, msg.sender, amount_, _balance);
     }
 
     /// @notice Unstake tokens and transfer to staker
@@ -131,7 +126,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
             _balance += _user_to_checkpoint_to_data[staker_][_last_ts].balance;
         }
 
-        require(balance >= amount_, "Insufficient balance");
+        require(_balance >= amount_, "Insufficient balance");
 
         _balance -= amount_;
         bool success = token.transfer(receiver_, amount_);
