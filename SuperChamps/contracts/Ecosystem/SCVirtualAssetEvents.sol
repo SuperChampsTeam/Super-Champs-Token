@@ -26,19 +26,19 @@ contract SCVirtualAssetEvents {
         game = game_;
     }
 
-    function EmitGameUserAsset(string memory user_id, string memory asset_id, int256 delta, string memory data) external isPermissionedUser {
+    function EmitGameUserAsset(string calldata user_id, string calldata asset_id, int256 delta, string calldata data) external isPermissionedUser {
         emit GameUserAsset(user_id, asset_id, delta, data);
     }
 
-    function EmitGameUserActivity(string memory user_id, string memory data) external isPermissionedUser {
+    function EmitGameUserActivity(string calldata user_id, string calldata data) external isPermissionedUser {
         emit GameUserActivity(user_id, data);
     }
 
-    function EmitGameUserAssetWithSign(string memory user_id, string memory asset_id, int256 delta, string memory data, bytes memory sign) external {
+    function EmitGameUserAssetWithSign(string calldata user_id, string calldata asset_id, int256 delta, string calldata data, bytes calldata sign) external {
         emit GameUserAssetWithSign(user_id, asset_id, delta, data, sign);
     }
 
-    function EmitGameUserActivityWithSign(string memory user_id, string memory data, bytes memory sign) external {
+    function EmitGameUserActivityWithSign(string calldata user_id, string calldata data, bytes calldata sign) external {
         emit GameUserActivityWithSign(user_id, data, sign);
     }
 }
