@@ -13,10 +13,10 @@ import "../../interfaces/ISCMetagamePool.sol";
 /// @notice Staking pool for Super Champ tokens.
 /// @dev This pool does not issue on-chain rewards. Rewards are tabulated off-chain.
 contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
-
+    
     struct StakingData {
-        uint256 balance;
-        address msg_sender;
+        uint256 balance; //we will know whether a check point is stake/unstake by seeing if balance increased/decreased.
+        address msg_sender; //in case of stake, if msg_sender is season_contract_address, then it is claimAndStake else it simple stake. in case of unstake, if sender is 'our decided aaddress', then it is spendFromStake else it is simple unstake.
     }
 
     IERC20 public immutable token;
