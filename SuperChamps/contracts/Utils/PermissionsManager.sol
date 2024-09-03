@@ -24,8 +24,8 @@ contract PermissionsManager is IPermissionsManager {
         _;
     }
 
-    constructor() {
-        role_mapping[msg.sender][Role.GLOBAL_ADMIN] = true;
+    constructor(address init_admin) {
+        role_mapping[init_admin][Role.GLOBAL_ADMIN] = true;
     }
 
     ///@notice Queries if an address has the specified role.
