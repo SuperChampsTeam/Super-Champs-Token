@@ -33,11 +33,11 @@ contract SCDeploymentHelper {
     uint256 private constant SUPER_CHAMPS_FOUNDATION_ALLOCATION = 680_000_000 ether;
 
     ///@notice The numerator of the per second emissions rate of the emissions pool contracts.
-    ///@dev 778 / 100_000_000_000 = 0.00000000778 | 1 - 0.00000000778 = 0.99999999222 | 2_592_000 = 30 days in seconds | 1 - (0.99999999222^2_592_000) = 0.01996379103680036030655598958972 pool contents emissions per 30 days, target is ~2%
-    uint256 private constant EMISSIONS_RATE_NUMERATOR = 778;
+    ///@dev 19789 / 1_000_000_000_000 = 0.000000019789 | 1 - 0.000000019789 = 0.99999998021 | 2_592_000 = 30 days in seconds | 1 - (0.99999998021^2_592_000) = 0.04999980437 pool contents emissions per 30 days, target is ~5%
+    uint256 private constant EMISSIONS_RATE_NUMERATOR = 19789;
 
     ///@notice The devisor of the per second emissions rate of the emissions pool contracts.
-    uint256 private constant EMISSIONS_RATE_DIVISOR = 100_000_000_000;
+    uint256 private constant EMISSIONS_RATE_DIVISOR = 1_000_000_000_000;
     
     ///@notice A function modifier that restricts execution to Global Admins.
     modifier isGlobalAdmin() {
