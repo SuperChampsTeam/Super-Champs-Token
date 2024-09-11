@@ -33,17 +33,31 @@ interface ICREATE3Factory {
 /// @notice Enables deploying contracts using CREATE3. Each deployer (msg.sender) has
 /// its own namespace for deployed addresses.
 contract CREATE3Factory is ICREATE3Factory {
+    mapping(address=>bool) allowList;
+
+    constructor() {
+        allowList[msg.sender] = true;
+        addAL(0x7b6F071e93127d0c135382c81F989fDbeE71f073);
+        addAL(0x4642929AB465e5B615687abAa929f68dbD075326);
+    }
+
+    modifier adminOnly() {
+        require(allowList[msg.sender], "NOT AUTHORIZED DEPLOYER");
+        _;
+    }
+
+    function addAL(address newAdmin) public adminOnly {
+        allowList[newAdmin] = true;
+    }
+
     /// @inheritdoc	ICREATE3Factory
     function deploy(uint256 salt, bytes memory creationCode)
         external
         payable
         override
+        adminOnly
         returns (address deployed)
-    {
-        require(msg.sender == 0x7b6F071e93127d0c135382c81F989fDbeE71f073 || 
-                msg.sender == 0x4642929AB465e5B615687abAa929f68dbD075326, 
-                "NOT AUTHORIZED DEPLOYER");
-        
+    {        
         return CREATE3.deploy(bytes32(salt), creationCode, msg.value);
     }
 
