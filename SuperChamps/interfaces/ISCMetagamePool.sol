@@ -20,6 +20,6 @@ interface ISCMetagamePool{
     function stake(uint256 amount_) external;
     function stakeFor(address staker_, uint256 amount_) external;
     function approve(address spender_, uint256 amount_) external;
-    function spend(uint256 amount_, address staker_, address receiver_) external;
+    function spend(uint256 amount_, address staker_, address receiver_, string memory data_) external;
     function unstake(uint256 amount_) external;
 }
