@@ -18,7 +18,6 @@ interface IVestingFactory {
         address owner) external returns (address);
 }
 
-
 /// @title SECURE TOKEN VESTING STREAM SPLITTER
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 /// @notice This is an ERC20 token splitter ehat allows a token recipient flexibility in how to split their tokens to multiple owned wallets, without allowing them to bypass vesting requirements.
@@ -33,13 +32,13 @@ contract VestingSplitter {
 
     event StreamCreated(address recipient, uint256 amount, address stream);
 
-    constructor(address _admin, address _factory, uint256 _vesting_duration, uint256 _vesting_start, uint256 _cliff_length) {
+    constructor(address _admin) {
         creator = msg.sender;
         splitter = _admin;
-        factory = IVestingFactory(_factory);
-        vesting_duration = _vesting_duration;
-        vesting_start = _vesting_start;
-        cliff_length = _cliff_length;
+        factory = IVestingFactory(0x62E13BE78af77C86D38a027ae432F67d9EcD4c10);
+        vesting_duration = 1;
+        vesting_start = 1732109400;
+        cliff_length = 0;
     }
     
     function SplitTokens(IERC20 token, address[] memory recipients, uint256[] memory amounts) external {
@@ -73,9 +72,9 @@ contract VestingSplitter {
         require(disbursed == balance, "INVALID AMOUNTS");
     }
 
-    function RescueTokens(IERC20 token) external {
+    function RescueTokens(IERC20 token, address recipient) external {
         require(msg.sender == creator, "NO AUTH");
         uint256 balance = token.balanceOf(address(this));
-        token.transfer(creator, balance);
+        token.transfer(recipient, balance);
     }
 }
