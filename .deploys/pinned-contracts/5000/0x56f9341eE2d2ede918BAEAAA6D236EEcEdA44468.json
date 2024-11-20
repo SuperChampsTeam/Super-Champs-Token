@@ -1,6 +1,6 @@
 {
   "name": "SCMetagamePool",
-  "address": "0xFc4A1990564cE0A88D83cc8ae1e8395e598bD503",
+  "address": "0x56f9341eE2d2ede918BAEAAA6D236EEcEdA44468",
   "abi": [
     {
       "inputs": [
@@ -36,6 +36,11 @@
           "internalType": "address",
           "name": "receiver_",
           "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "data_",
+          "type": "string"
         }
       ],
       "name": "spend",
@@ -127,6 +132,18 @@
           "internalType": "uint256",
           "name": "balance",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
         }
       ],
       "name": "SpendFromStake",
@@ -344,5 +361,5 @@
     }
   ],
   "filePath": " - connect to localhost - /SuperChamps/contracts/Metagame/SCMetagamePool.sol",
-  "pinnedAt": 1725404448218
+  "pinnedAt": 1730828960333
 }
