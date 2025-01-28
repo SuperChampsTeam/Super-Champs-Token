@@ -5,6 +5,9 @@ pragma solidity ^0.8.24;
 
 /// @title Interface for protocol's leaderboard's player rewards program
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 interface ISCMLRewards {
     struct MemeLeaderboard {
         uint256 id;
@@ -16,9 +19,8 @@ interface ISCMLRewards {
         uint256 claim_end_time;   //Last time claim is available
     }
 
-    function startLeaderboard(
-        uint256 start_time_, address[] calldata tokens
-    ) external returns(MemeLeaderboard memory);
+    function startLeaderboard(uint256 start_time_, address[] calldata tokens_) external returns (
+    uint256 id, uint256 start_time, uint256 end_time, address[] calldata tokens);
 
     function endLeaderboard(
         uint256 id_
