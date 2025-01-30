@@ -12,7 +12,7 @@ import "../../interfaces/ISCMLRewards.sol";
 /// @author Chance Santana-Wees (Coelacanth/Coel.eth)
 contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
     ///@notice The treasury from which meme leaderboards pull their reward tokens.
-    address public treasury;
+    // address public treasury;
 
     ///@notice A list of Meme Leaderboards (MemeLeaderboard). A leaderboard's ID is its index in the list.
     MemeLeaderboard[] public memeLeaderboards;
@@ -25,7 +25,7 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
     mapping(uint256 => mapping(address => mapping(address => uint256)))
         public claimed_rewards;
 
-    event TreasurySet(address treasury);
+    // event TreasurySet(address treasury);
     event LeaderboardStarted(
         uint256 leaderboardId,
         uint256 startTime,
@@ -46,10 +46,10 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
     event Debug(string message, uint256 value);
     event DebugAddress(string message, address value);
 
-    constructor(address permissions_, address treasury_)
+    constructor(address permissions_)
         SCPermissionedAccess(permissions_)
     {
-        treasury = treasury_;
+        // treasury = treasury_;
     }
 
     function startLeaderboard(uint256 start_time_, address[] calldata tokens_)
@@ -127,11 +127,11 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
         );
 
         for (uint256 i = 0; i < leaderboard.tokens.length; i++) {
-            IERC20 token = IERC20(leaderboard.tokens[i]);
-            require(
-                token.transferFrom(treasury, address(this), reward_amount_[i]),
-                "FAILED TRANSFER"
-            );
+            // IERC20 token = IERC20(leaderboard.tokens[i]);
+            // require(
+            //     token.transferFrom(treasury, address(this), reward_amount_[i]),
+            //     "FAILED TRANSFER"
+            // );
             leaderboard.reward_amount[i] = reward_amount_[i];
             leaderboard.remaining_reward_amount[i] = reward_amount_[i];
         }
@@ -216,10 +216,10 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
         for (uint256 i = 0; i < leaderboard.tokens.length; i++) {
             uint256 remaining = leaderboard.remaining_reward_amount[i];
             if (remaining > 0) {
-                require(
-                    IERC20(leaderboard.tokens[i]).transfer(treasury, remaining),
-                    "TRANSFER FAILED"
-                );
+                // require(
+                //     IERC20(leaderboard.tokens[i]).transfer(treasury, remaining),
+                //     "TRANSFER FAILED"
+                // );
                 leaderboard.remaining_reward_amount[i] = 0;
             }
         }
