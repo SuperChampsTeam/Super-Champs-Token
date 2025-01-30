@@ -47,6 +47,6 @@ interface ISCMLRewards {
     ) external view returns(uint256); 
 
     function revokeUnclaimedReward(
-        uint256 id_
+        uint256 id_, address treasury
     ) external;
 }

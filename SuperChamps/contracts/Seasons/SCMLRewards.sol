@@ -207,7 +207,8 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
         return totalReward;
     }
 
-    function revokeUnclaimedReward(uint256 id_) external isSystemsAdmin {
+    function revokeUnclaimedReward(
+        uint256 id_, address treasury) external isSystemsAdmin {
         MemeLeaderboard storage leaderboard = memeLeaderboards[id_];
         require(
             leaderboard.claim_end_time < block.timestamp,
@@ -216,10 +217,10 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
         for (uint256 i = 0; i < leaderboard.tokens.length; i++) {
             uint256 remaining = leaderboard.remaining_reward_amount[i];
             if (remaining > 0) {
-                // require(
-                //     IERC20(leaderboard.tokens[i]).transfer(treasury, remaining),
-                //     "TRANSFER FAILED"
-                // );
+                require(
+                    IERC20(leaderboard.tokens[i]).transfer(treasury, remaining),
+                    "TRANSFER FAILED"
+                );
                 leaderboard.remaining_reward_amount[i] = 0;
             }
         }
