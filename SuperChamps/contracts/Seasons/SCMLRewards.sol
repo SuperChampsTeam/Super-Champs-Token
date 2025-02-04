@@ -42,9 +42,7 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
         address token,
         uint256 amount
     );
-    event DebugStartSeason(uint256 start_time, address[] tokens);
-    event Debug(string message, uint256 value);
-    event DebugAddress(string message, address value);
+
 
     constructor(address permissions_)
         SCPermissionedAccess(permissions_)
@@ -57,8 +55,6 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
         isSystemsAdmin
         returns ( uint256 id, uint256 start_time, uint256 end_time, address[] calldata tokens )
     {
-        emit Debug("Start Time", start_time_);
-        emit Debug("Tokens Length", tokens_.length);
         
         require(start_time_ > 0, "CANNOT START AT 0");
         require(tokens_.length > 0, "NO TOKENS PROVIDED");
@@ -67,7 +63,6 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
 
         for (uint256 i = 0; i < tokens_.length; i++) {
             require(tokens_[i] != address(0), "INVALID TOKEN ADDRESS");
-            emit DebugAddress("Token Address", tokens_[i]);
         }
 
         uint256 leaderboardId = memeLeaderboards.length;
@@ -89,7 +84,6 @@ contract SCMLRewards is ISCMLRewards, SCPermissionedAccess {
             leaderboard.start_time,
             leaderboard.tokens
         );
-        emit Debug("Leaderboard ID", leaderboard.id);
 
         return (
             leaderboard.id,
