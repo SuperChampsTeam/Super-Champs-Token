@@ -27,7 +27,7 @@ interface ISCSeasonRewards {
         uint256 id_,
         uint256 reward_amount_,
         uint256 claim_duration
-    ) external;
+    ) external payable;
 
     function reportRewards(
         uint256 season_id_,

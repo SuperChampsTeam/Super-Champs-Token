@@ -16,7 +16,7 @@ import "../../interfaces/ISCMetagamePool.sol";
 /// @notice Allows System Admins to set up and report scores for Seasons.
 contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ///@notice The address of the rewards token. (The CHAMP token)
-    IERC20 immutable token;
+    address immutable token;
 
     ///@notice The traeasury from which Seasons pull their reward tokens.
     address treasury;
@@ -59,7 +59,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         address staking_pool_) 
         SCPermissionedAccess(permissions_)
     {
-        token = IERC20(token_);
+        token = (token_);
         treasury = treasury_;
         access_pass = ISCAccessPass(access_pass_);
         staking_pool = ISCMetagamePool(staking_pool_);
@@ -173,7 +173,15 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         require(isSeasonClaimingEnded(_season, block.timestamp), "SEASON_CLAIM_NOT_ENDED");
         require(_remaining_reward_amount > 0, "ZERO_REMAINING_AMOUNT");
 
-        bool transfer_success = token.transfer(treasury, _remaining_reward_amount);
+        bool transfer_success;
+
+        if (address(token) == address(0)) {
+            // Native token
+            (transfer_success, ) = payable(treasury).call{value: _season.remaining_reward_amount}("");
+        } else {
+            // ERC-20
+            transfer_success = IERC20(token).transfer(treasury, _season.remaining_reward_amount);
+        }
         require(transfer_success, "FAILED TRANSFER");
         _season.remaining_reward_amount -= uint128(_remaining_reward_amount);
     }
@@ -187,18 +195,24 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         uint256 id_,
         uint256 reward_amount_,
         uint256 claim_duration_
-    ) external isSystemsAdmin
+    ) external isSystemsAdmin payable
     {
         Season storage _season = seasons[id_];
         require(_season.start_time > 0, "SEASON NOT FOUND");
         require(isSeasonEnded(_season, block.timestamp), "SEASON_NOT_ENDED");
         require(!isSeasonFinalized(_season), "SEASON_FINALIZED");
         require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT DOESN'T MATCH");
-        require(claim_duration_ >= 7 days && claim_duration_ < 1000 days, "CLAIM DURATION OUT OF BOUNDS");
-
-        bool transfer_success = token.transferFrom(treasury, address(this), reward_amount_);
+        require(claim_duration_ >= 7 seconds && claim_duration_ < 1000 days, "CLAIM DURATION OUT OF BOUNDS");
+        bool transfer_success;
+        if (token == address(0)) {
+            // Native token: must come with msg.value
+            require(msg.value == reward_amount_, "Incorrect ETH value sent");
+            transfer_success = true; // ETH already received in msg.value
+        } else {
+            // ERC-20 token
+            transfer_success = IERC20(token).transferFrom(treasury, address(this), reward_amount_);
+        }
         require(transfer_success, "FAILED TRANSFER");
-        
         _season.remaining_reward_amount = reward_amount_;
         _season.claim_end_time = block.timestamp + claim_duration_;
     }
@@ -264,7 +278,14 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ) external
     {
         uint256 _reward = _preClaim(season_id_);
-        bool transfer_success = token.transfer(msg.sender, _reward);
+        bool transfer_success;
+        if (address(token) == address(0)) {
+            // Native token
+            (transfer_success, ) = payable(msg.sender).call{value: _reward}("");
+        } else {
+            // ERC-20
+            transfer_success = IERC20(token).transfer(msg.sender, _reward);
+        }
         require(transfer_success, "FAILED TRANSFER");
     }
 
@@ -276,8 +297,14 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ) external
     {
         uint256 _reward = _preClaim(season_id_);
-        token.approve(address(staking_pool), _reward);
-        staking_pool.stakeFor(msg.sender, _reward);
+        if (address(token) == address(0)) {
+            // Native token case
+            staking_pool.stakeFor{value: _reward}(msg.sender, _reward);
+        } else {
+            // ERC-20 token case
+            IERC20(token).approve(address(staking_pool), _reward);
+            staking_pool.stakeFor(msg.sender, _reward);
+        }
         emit StakedRewards(msg.sender, _reward);
     }
 

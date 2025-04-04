@@ -19,7 +19,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
         address msg_sender; //in case of stake, if msg_sender is season_contract_address, then it is claimAndStake else it simple stake. in case of unstake, if sender is 'our decided aaddress', then it is spendFromStake else it is simple unstake.
     }
 
-    IERC20 public immutable token;
+    address public immutable token;
 
     mapping(address => mapping(uint256 => StakingData)) _user_to_checkpoint_to_data;
     mapping(address => uint256[]) _user_checkpoints;
@@ -28,15 +28,21 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
 
     /// @param permissions_ Address of the protocol permissions registry. Must conform to IPermissionsManager
     constructor(address permissions_, address token_) SCPermissionedAccess(permissions_) {
-        token = IERC20(token_);
+        token = (token_);
     }
 
     /// @notice Stake tokens directly
     /// @param amount_ Quantity of tokens to stake
-    function stake(uint256 amount_) external {
-        bool success = token.transferFrom(msg.sender, address(this), amount_);
-        if(!success) {
-            revert UnableToTransferTokens(msg.sender, amount_);
+    function stake(uint256 amount_) external payable {
+        if (address(token) == address(0)) {
+            // Native token
+            require(msg.value == amount_, "Incorrect ETH amount sent");
+        } else {
+            // ERC-20 token
+            bool success = IERC20(token).transferFrom(msg.sender, address(this), amount_);
+            if (!success) {
+                revert UnableToTransferTokens(msg.sender, amount_);
+            }
         }
         _stake(msg.sender, amount_);
     }
@@ -45,10 +51,16 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @param staker_ The address to stake tokens for
     /// @param amount_ Quantity of tokens to stake
     /// @dev Tokens are transferred from msg.sender and credited to staker_
-    function stakeFor(address staker_, uint256 amount_) external {
-        bool success = token.transferFrom(msg.sender, address(this), amount_);
-        if(!success) {
-            revert UnableToTransferTokens(msg.sender, amount_);
+    function stakeFor(address staker_, uint256 amount_) external payable {
+        if (address(token) == address(0)) {
+            // Native token: use msg.value
+            require(msg.value == amount_, "Incorrect ETH amount sent");
+        } else {
+            // ERC-20 token
+            bool success = IERC20(token).transferFrom(msg.sender, address(this), amount_);
+            if (!success) {
+                revert UnableToTransferTokens(msg.sender, amount_);
+            }
         }
         _stake(staker_, amount_);
     }
@@ -120,19 +132,28 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
 
     function _unstake(uint256 amount_, address staker_, address receiver_) internal returns (uint256) {
         uint256[] storage _checkpoints = _user_checkpoints[staker_];
-        
+
         uint256 _balance = 0;
         if(_checkpoints.length > 0) {
-            uint256 _last_ts = _checkpoints[_checkpoints.length-1];
-            _balance += _user_to_checkpoint_to_data[staker_][_last_ts].balance;
+            uint256 _last_ts = _checkpoints[_checkpoints.length - 1];
+            _balance = _user_to_checkpoint_to_data[staker_][_last_ts].balance;
         }
 
         require(_balance >= amount_, "Insufficient balance");
-
         _balance -= amount_;
-        bool success = token.transfer(receiver_, amount_);
-        if(!success) {
-            revert UnableToUnstakeTokens(staker_, amount_, token.balanceOf(address(this)));
+
+        bool success;
+
+        if (address(token) == address(0)) {
+            // Native token (e.g., ETH)
+            (success, ) = receiver_.call{value: amount_}("");
+        } else {
+            // ERC-20 token
+            success = IERC20(token).transfer(receiver_, amount_);
+        }
+
+        if (!success) {
+            revert UnableToUnstakeTokens(staker_, amount_, address(token) == address(0) ? address(this).balance : IERC20(token).balanceOf(address(this)));
         }
 
         uint256 _current_ts = block.timestamp;
@@ -142,11 +163,12 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
             balance: _balance,
             msg_sender: msg.sender
         });
-        
+
         _user_to_checkpoint_to_data[staker_][_current_ts] = newStakingData;
 
         return _balance;
     }
+
 
     function _stake(address staker_, uint256 amount_) internal {
         uint256[] storage _checkpoints = _user_checkpoints[staker_];
