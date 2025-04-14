@@ -52,12 +52,12 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ///@param treasury_ The address of the account/contract that the Seasons reward system pulls reward tokens from.
     /// @param access_pass_ Address of the protocol access pass SBT
     constructor(
-        address permissions_, 
-        address token_, 
+        address permissions_,
+        address token_,
         address treasury_,
         address access_pass_,
-        address staking_pool_) 
-        SCPermissionedAccess(permissions_)
+        address staking_pool_)
+    SCPermissionedAccess(permissions_)
     {
         token = (token_);
         treasury = treasury_;
@@ -95,7 +95,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     function isSeasonActive(
         Season memory season_,
         uint256 timestamp_
-    ) public pure returns(bool _active) 
+    ) public pure returns(bool _active)
     {
         _active = season_.end_time >= timestamp_ && timestamp_ > season_.start_time;
     }
@@ -106,7 +106,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ///@return _finalized bool The finalized status of the provided season.
     function isSeasonFinalized(
         Season memory season_
-    ) public pure returns(bool _finalized) 
+    ) public pure returns(bool _finalized)
     {
         _finalized = season_.claim_end_time > 0;
     }
@@ -118,7 +118,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     function isSeasonEnded(
         Season memory season_,
         uint256 timestamp_
-    ) public pure returns(bool _ended) 
+    ) public pure returns(bool _ended)
     {
         _ended = season_.end_time < timestamp_;
     }
@@ -130,7 +130,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     function isSeasonClaimingActive(
         Season memory season_,
         uint256 timestamp_
-    ) public pure returns(bool _active) 
+    ) public pure returns(bool _active)
     {
         _active = isSeasonFinalized(season_) && season_.claim_end_time >= timestamp_;
     }
@@ -142,7 +142,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     function isSeasonClaimingEnded(
         Season memory season_,
         uint256 timestamp_
-    ) public pure returns(bool _ended) 
+    ) public pure returns(bool _ended)
     {
         _ended = isSeasonFinalized(season_) && season_.claim_end_time < timestamp_;
     }
@@ -250,7 +250,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         Season storage _season = seasons[season_id_];
         require(_season.start_time > 0, "SEASON NOT FOUND");
         require(!isSeasonFinalized(_season), "SEASON FINALIZED");
-        
+
         uint256 _increase = 0;
         uint256 _decrease = 0;
 
@@ -269,8 +269,8 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ///@param season_id_ The season to claim reward tokens from.
     function _preClaim(
         uint256 season_id_
-    ) internal 
-        returns (uint256)
+    ) internal
+    returns (uint256)
     {
         require(claimed_rewards[season_id_][msg.sender] == 0, "REWARD CLAIMED");
         //require(access_pass.isVerified(msg.sender), "MUST HAVE VERIFIED AN ACCESS PASS");
@@ -296,13 +296,20 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     {
         uint256 _reward = _preClaim(season_id_);
         bool transfer_success;
-        if (address(token) == address(0)) {
-            // Native token
-            (transfer_success, ) = payable(msg.sender).call{value: _reward}("");
-        } else {
-            // ERC-20
-            transfer_success = IERC20(token).transfer(msg.sender, _reward);
-        }
+        transfer_success = IERC20(token).transfer(msg.sender, _reward);
+        require(transfer_success, "FAILED TRANSFER");
+    }
+
+    ///@notice Claim native tokens to msg.sender
+    ///@dev Callable only on seasons which have been finalized and whose claim duration has not elapsed.
+    ///@param season_id_ The season to claim reward tokens from.
+    function claimNativeReward(
+        uint256 season_id_
+    ) external
+    {
+        uint256 _reward = _preClaim(season_id_);
+        bool transfer_success;
+        (transfer_success, ) = payable(msg.sender).call{value: _reward}("");
         require(transfer_success, "FAILED TRANSFER");
     }
 
@@ -314,14 +321,20 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ) external
     {
         uint256 _reward = _preClaim(season_id_);
-        if (address(token) == address(0)) {
-            // Native token case
-            staking_pool.stakeNativeFor{value: _reward}(msg.sender, _reward);
-        } else {
-            // ERC-20 token case
-            IERC20(token).approve(address(staking_pool), _reward);
-            staking_pool.stakeFor(msg.sender, _reward);
-        }
+        IERC20(token).approve(address(staking_pool), _reward);
+        staking_pool.stakeFor(msg.sender, _reward);
+        emit StakedRewards(msg.sender, _reward);
+    }
+
+    ///@notice Stake native tokens claimed.
+    ///@dev Callable only on seasons which have been finalized and whose claim duration has not elapsed.
+    ///@param season_id_ The season to claim reward tokens from.
+    function stakeNativeReward(
+        uint256 season_id_
+    ) external
+    {
+        uint256 _reward = _preClaim(season_id_);
+        staking_pool.stakeNativeFor{value: _reward}(msg.sender, _reward);
         emit StakedRewards(msg.sender, _reward);
     }
 
@@ -329,7 +342,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
     ///@param season_id_ The season to get reward tokens from.
     function getClaimableReward(
         uint256 season_id_
-    ) public view returns(uint256 _reward) 
+    ) public view returns(uint256 _reward)
     {
         _reward = season_rewards[season_id_][msg.sender] - claimed_rewards[season_id_][msg.sender];
         Season storage _season = seasons[season_id_];

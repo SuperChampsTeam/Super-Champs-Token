@@ -46,6 +46,10 @@ interface ISCSeasonRewards {
         uint256 season_id_
     ) external;
 
+    function claimNativeReward(
+        uint256 season_id_
+    ) external;
+
     function getClaimableReward(
         uint256 season_id_
     ) external view returns(uint256); 
