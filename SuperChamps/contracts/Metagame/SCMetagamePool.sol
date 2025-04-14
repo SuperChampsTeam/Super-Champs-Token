@@ -13,7 +13,7 @@ import "../../interfaces/ISCMetagamePool.sol";
 /// @notice Staking pool for Super Champ tokens.
 /// @dev This pool does not issue on-chain rewards. Rewards are tabulated off-chain.
 contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
-    
+
     struct StakingData {
         uint256 balance; //we will know whether a check point is stake/unstake by seeing if balance increased/decreased.
         address msg_sender; //in case of stake, if msg_sender is season_contract_address, then it is claimAndStake else it simple stake. in case of unstake, if sender is 'our decided aaddress', then it is spendFromStake else it is simple unstake.
@@ -91,6 +91,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @dev This does NOT trigger an Unstake event, allowing stakers to spend tokens without penalty
     /// @dev This is expected to be called from the spending contract, which must be first permissioned through a direct call to approve(...)
     function spend(uint256 amount_, address staker_, address receiver_, string memory data_) external {
+        require(token != address(0), "CANNOT RUN THIS USING NATIVE CURRENCY");
         if(staker_ != msg.sender) {
             uint256 approvedAmount = _user_to_approved_spend[staker_][msg.sender];
             require(approvedAmount >= amount_, "Insufficient allowance");
@@ -100,13 +101,45 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
         emit SpendFromStake(staker_, msg.sender, amount_, _balance, receiver_, data_);
     }
 
+    /// @notice Spend native tokens from a stakers staked tokens
+    /// @param amount_ Quantity of tokens to unstake/spend
+    /// @param staker_ The address of the staker
+    /// @param receiver_ The address of the reciever of the spent tokens
+    /// @param data_ data related to spent tokens
+    function spendNative(uint256 amount_, address payable staker_, address receiver_, string memory data_) external {
+        require(token == address(0), "CANNOT RUN THIS USING ERC-20 TOKEN");
+        if (staker_ != msg.sender) {
+            uint256 approvedAmount = _user_to_approved_spend[staker_][msg.sender];
+            require(approvedAmount >= amount_, "Insufficient allowance");
+            _user_to_approved_spend[staker_][msg.sender] -= amount_;
+        }
+        uint256 _balance = _unstake(amount_, staker_, receiver_);
+        // Native token transfer
+        (bool sent, ) = receiver_.call{value: amount_}("");
+        require(sent, "Native token transfer failed");
+        emit SpendFromStake(staker_, msg.sender, amount_, _balance, receiver_, data_);
+    }
+
+
     /// @notice Unstake tokens and transfer to staker
     /// @param amount_ Quantity of tokens to unstake
     /// @dev This triggers an Unstake event which can cause penalties in the metagame
     function unstake(uint256 amount_) external {
+        require(token != address(0), "CANNOT RUN THIS USING NATIVE CURRENCY");
         uint256 _balance = _unstake(amount_, msg.sender, msg.sender);
         emit Unstake(msg.sender, amount_, _balance);
     }
+
+
+    /// @notice Unstake native tokens and transfer to staker
+    /// @param amount_ Quantity of tokens to unstake
+    /// @dev This triggers an Unstake event which can cause penalties in the metagame
+    function unstakeNative(uint256 amount_) external {
+        require(token == address(0), "CANNOT RUN THIS USING ERC-20 TOKEN");
+        uint256 _balance = _unstake(amount_, msg.sender, msg.sender);
+        emit Unstake(msg.sender, amount_, _balance);
+    }
+
 
     /// @notice Returns the list of all of the users staking checkpoint timestamps
     /// @param staker_ Address of the staker
@@ -182,7 +215,7 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
 
     function _stake(address staker_, uint256 amount_) internal {
         uint256[] storage _checkpoints = _user_checkpoints[staker_];
-        
+
         uint256 _balance = amount_;
         if(_checkpoints.length > 0) {
             uint256 _last_ts = _checkpoints[_checkpoints.length-1];

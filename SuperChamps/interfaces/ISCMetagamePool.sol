@@ -23,5 +23,7 @@ interface ISCMetagamePool{
     function stakeNativeFor(address staker_, uint256 amount_) external payable;
     function approve(address spender_, uint256 amount_) external;
     function spend(uint256 amount_, address staker_, address receiver_, string memory data_) external;
+    function spendNative(uint256 amount_, address payable staker_, address receiver_, string memory data_) external;
     function unstake(uint256 amount_) external;
+    function unstakeNative(uint256 amount_) external;
 }
