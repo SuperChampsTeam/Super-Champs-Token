@@ -195,6 +195,31 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         uint256 id_,
         uint256 reward_amount_,
         uint256 claim_duration_
+    ) external isSystemsAdmin
+    {
+        Season storage _season = seasons[id_];
+        require(_season.start_time > 0, "SEASON NOT FOUND");
+        require(isSeasonEnded(_season, block.timestamp), "SEASON_NOT_ENDED");
+        require(!isSeasonFinalized(_season), "SEASON_FINALIZED");
+        require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT DOESN'T MATCH");
+        require(claim_duration_ >= 7 seconds && claim_duration_ < 1000 days, "CLAIM DURATION OUT OF BOUNDS");
+        require(token != address(0), "CANNOT RUN THIS USING NATIVE CURRENCY");
+        bool transfer_success = IERC20(token).transferFrom(treasury, address(this), reward_amount_);
+        require(transfer_success, "FAILED TRANSFER");
+        _season.remaining_reward_amount = reward_amount_;
+        _season.claim_end_time = block.timestamp + claim_duration_;
+    }
+
+
+    ///@notice Finalizes a season, setting its rewards quantity using native currency and claim period.
+    ///@dev Callable only by Systems Admins and only after the season has been ended by calling the endSeason(...) function.
+    ///@param id_ The id of the season to finalize.
+    ///@param reward_amount_ The quantity of reward tokens to split between season participants. This quantity must be able to be transferred from the treasury.
+    ///@param claim_duration_ The duration of the claim period.
+    function finalizeNative(
+        uint256 id_,
+        uint256 reward_amount_,
+        uint256 claim_duration_
     ) external isSystemsAdmin payable
     {
         Season storage _season = seasons[id_];
@@ -203,16 +228,8 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         require(!isSeasonFinalized(_season), "SEASON_FINALIZED");
         require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT DOESN'T MATCH");
         require(claim_duration_ >= 7 seconds && claim_duration_ < 1000 days, "CLAIM DURATION OUT OF BOUNDS");
-        bool transfer_success;
-        if (token == address(0)) {
-            // Native token: must come with msg.value
-            require(msg.value == reward_amount_, "Incorrect ETH value sent");
-            transfer_success = true; // ETH already received in msg.value
-        } else {
-            // ERC-20 token
-            transfer_success = IERC20(token).transferFrom(treasury, address(this), reward_amount_);
-        }
-        require(transfer_success, "FAILED TRANSFER");
+        require(token == address(0), "CANNOT RUN THIS USING ERC-20 TOKEN");
+        require(msg.value == reward_amount_, "Incorrect token value sent");
         _season.remaining_reward_amount = reward_amount_;
         _season.claim_end_time = block.timestamp + claim_duration_;
     }
@@ -299,7 +316,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         uint256 _reward = _preClaim(season_id_);
         if (address(token) == address(0)) {
             // Native token case
-            staking_pool.stakeFor{value: _reward}(msg.sender, _reward);
+            staking_pool.stakeNativeFor{value: _reward}(msg.sender, _reward);
         } else {
             // ERC-20 token case
             IERC20(token).approve(address(staking_pool), _reward);

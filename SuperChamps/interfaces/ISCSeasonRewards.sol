@@ -27,6 +27,13 @@ interface ISCSeasonRewards {
         uint256 id_,
         uint256 reward_amount_,
         uint256 claim_duration
+    ) external;
+
+
+    function finalizeNative(
+        uint256 id_,
+        uint256 reward_amount_,
+        uint256 claim_duration
     ) external payable;
 
     function reportRewards(

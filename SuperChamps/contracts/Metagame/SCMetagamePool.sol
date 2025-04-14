@@ -33,17 +33,21 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
 
     /// @notice Stake tokens directly
     /// @param amount_ Quantity of tokens to stake
-    function stake(uint256 amount_) external payable {
-        if (address(token) == address(0)) {
-            // Native token
-            require(msg.value == amount_, "Incorrect ETH amount sent");
-        } else {
-            // ERC-20 token
-            bool success = IERC20(token).transferFrom(msg.sender, address(this), amount_);
-            if (!success) {
-                revert UnableToTransferTokens(msg.sender, amount_);
-            }
+    function stake(uint256 amount_) external {
+        require(token != address(0), "CANNOT RUN THIS USING NATIVE CURRENCY");
+        // ERC-20 token
+        bool success = IERC20(token).transferFrom(msg.sender, address(this), amount_);
+        if (!success) {
+            revert UnableToTransferTokens(msg.sender, amount_);
         }
+        _stake(msg.sender, amount_);
+    }
+
+    /// @notice Stake native tokens directly
+    /// @param amount_ Quantity of tokens to stake
+    function stakeNative(uint256 amount_) external payable {
+        require(token == address(0), "CANNOT RUN THIS USING ERC-20 TOKEN");
+        require(msg.value == amount_, "Incorrect token amount sent");
         _stake(msg.sender, amount_);
     }
 
@@ -51,17 +55,23 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
     /// @param staker_ The address to stake tokens for
     /// @param amount_ Quantity of tokens to stake
     /// @dev Tokens are transferred from msg.sender and credited to staker_
-    function stakeFor(address staker_, uint256 amount_) external payable {
-        if (address(token) == address(0)) {
-            // Native token: use msg.value
-            require(msg.value == amount_, "Incorrect ETH amount sent");
-        } else {
-            // ERC-20 token
-            bool success = IERC20(token).transferFrom(msg.sender, address(this), amount_);
-            if (!success) {
-                revert UnableToTransferTokens(msg.sender, amount_);
-            }
+    function stakeFor(address staker_, uint256 amount_) external {
+        require(token != address(0), "CANNOT RUN THIS USING NATIVE CURRENCY");
+        bool success = IERC20(token).transferFrom(msg.sender, address(this), amount_);
+        if (!success) {
+            revert UnableToTransferTokens(msg.sender, amount_);
         }
+        _stake(staker_, amount_);
+    }
+
+
+    /// @notice Stake native tokens for another address
+    /// @param staker_ The address to stake tokens for
+    /// @param amount_ Quantity of tokens to stake
+    /// @dev Tokens are transferred from msg.sender and credited to staker_
+    function stakeNativeFor(address staker_, uint256 amount_) external payable {
+        require(token == address(0), "CANNOT RUN THIS USING ERC-20 TOKEN");
+        require(msg.value == amount_, "Incorrect token amount sent");
         _stake(staker_, amount_);
     }
 
