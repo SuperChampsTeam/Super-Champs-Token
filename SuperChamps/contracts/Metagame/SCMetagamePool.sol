@@ -115,8 +115,6 @@ contract SCMetagamePool is SCPermissionedAccess, ISCMetagamePool {
         }
         uint256 _balance = _unstake(amount_, staker_, receiver_);
         // Native token transfer
-        (bool sent, ) = receiver_.call{value: amount_}("");
-        require(sent, "Native token transfer failed");
         emit SpendFromStake(staker_, msg.sender, amount_, _balance, receiver_, data_);
     }
 
