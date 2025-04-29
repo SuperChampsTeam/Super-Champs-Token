@@ -29,6 +29,13 @@ interface ISCSeasonRewards {
         uint256 claim_duration
     ) external;
 
+
+    function finalizeNative(
+        uint256 id_,
+        uint256 reward_amount_,
+        uint256 claim_duration
+    ) external payable;
+
     function reportRewards(
         uint256 season_id_,
         address[] calldata players_,
@@ -36,6 +43,10 @@ interface ISCSeasonRewards {
     ) external;
 
     function claimReward(
+        uint256 season_id_
+    ) external;
+
+    function claimNativeReward(
         uint256 season_id_
     ) external;
 

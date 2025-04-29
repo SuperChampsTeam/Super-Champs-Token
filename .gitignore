@@ -6,3 +6,6 @@
 node_modules
 ganache_db
 build
+*_flat.sol
+hardhat.config.js
+*.json
