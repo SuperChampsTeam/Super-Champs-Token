@@ -84,44 +84,6 @@ contract CliffLocker {
         emit Locked(msg.sender, lockId, amount, startTime, endTime);
     }
 
-    /// @notice Admin locks tokens on behalf of any user
-    function lockForUser(address user, uint256 amount, uint256 durationInDays) external onlyAdmin {
-        require(user != address(0), "User is zero address");
-        require(amount > 0, "Amount must be > 0");
-        uint256 UNIT = 100 * 1 ether; //TODO: comment this and uncomment below
-        require(amount % UNIT == 0, "Amount must be multiple of 100");
-        //uint256 UNIT = 10000 * 1 ether;
-        //require(amount % UNIT == 0, "Amount must be multiple of 10000");
-        require(durationInDays > 0, "Duration must be > 0");
-        require(durationInDays % 1 == 0, "Duration must multiple of hours");
-      //  require( durationInDays == 180 || durationInDays == 365 || durationInDays == 730, "Duration must be 6, 12, or 24 months");
-
-        uint256 startTime = block.timestamp;
-        uint256 endTime = startTime + (durationInDays * 1 days);
-
-        bool success = token.transferFrom(msg.sender, address(this), amount);
-        require(success, "Transfer failed");
-
-        Lock memory newLock = Lock({
-            amount: amount,
-            startTime: startTime,
-            endTime: endTime,
-            claimed: false
-        });
-
-        locks[user].push(newLock);
-        uint256 lockId = locks[user].length - 1;
-
-        lockHistory[user].push(LockEvent({
-            lockId: lockId,
-            amount: amount,
-            startTime: startTime,
-            endTime: endTime
-        }));
-
-        emit Locked(user, lockId, amount, startTime, endTime);
-    }
-
     /// @notice User claims unlocked tokens after cliff
     function claim(uint256 lockId) external {
         require(lockId < locks[msg.sender].length, "Invalid lock ID");
