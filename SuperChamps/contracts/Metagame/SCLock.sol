@@ -112,6 +112,39 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         return claimHistory[user];
     }
 
+    function getLockHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (LockEvent[] memory) {
+        LockEvent[] storage history = lockHistory[user];
+        uint256 total = history.length;
+        if (offset >= total) return new LockEvent[](0);
+
+        uint256 end = offset + limit;
+        if (end > total) end = total;
+
+        LockEvent[] memory result = new LockEvent[](end - offset);
+        for (uint256 i = offset; i < end; i++) {
+            result[i - offset] = history[i];
+        }
+        return result;
+    }
+
+    function getClaimHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (ClaimEvent[] memory) {
+        ClaimEvent[] storage history = claimHistory[user];
+        uint256 total = history.length;
+        if (offset >= total) return new ClaimEvent[](0);
+
+        uint256 end = offset + limit;
+        if (end > total) end = total;
+
+        ClaimEvent[] memory result = new ClaimEvent[](end - offset);
+        for (uint256 i = offset; i < end; i++) {
+            result[i - offset] = history[i];
+        }
+        return result;
+    }
+
+
+    
+
     function getClaimable(address user, uint256 lockId) external view returns (uint256) {
         if (lockId >= lockHistory[user].length) return 0;
         LockEvent storage l = lockHistory[user][lockId];
