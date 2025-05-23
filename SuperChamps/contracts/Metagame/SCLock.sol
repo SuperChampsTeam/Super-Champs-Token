@@ -2,8 +2,11 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract CliffLocker {
+contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     struct LockEvent {
         uint256 lockId;
         uint256 amount;
@@ -18,45 +21,42 @@ contract CliffLocker {
         uint256 claimedAt;
     }
 
-    IERC20 public immutable token;
-    address public immutable admin;
+    IERC20 public token;
 
     mapping(address => LockEvent[]) private lockHistory;
     mapping(address => ClaimEvent[]) private claimHistory;
 
     event Locked(address indexed user, uint256 indexed lockId, uint256 amount, uint256 startTime, uint256 endTime);
     event Claimed(address indexed user, uint256 indexed lockId, uint256 amount, uint256 claimedAt);
+    event LockExtended(address indexed user, uint256 indexed lockId, uint256 newEndTime);
 
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin");
-        _;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers(); // prevents the logic contract from being initialized
     }
 
-    constructor(address _token, address _admin) {
+    function initialize(address _token) public initializer {
         require(_token != address(0), "Token address is zero");
-        require(_admin != address(0), "Admin address is zero");
         token = IERC20(_token);
-        admin = _admin;
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
     }
 
-    function lock(uint256 amount, uint256 durationInDays) external {
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    function lock(uint256 amount, uint256 durationInSecs) external {
         require(amount > 0, "Amount must be > 0");
-        uint256 UNIT = 100 * 1 ether; //TODO: comment this and uncomment below
-        require(amount % UNIT == 0, "Amount must be multiple of 100");
-        //uint256 UNIT = 10000 * 1 ether;
-        //require(amount % UNIT == 0, "Amount must be multiple of 10000");
-        require(durationInDays > 0, "Duration must be > 0");
-        require(durationInDays % 1 == 0, "Duration must multiple of hours");
-      //  require( durationInDays == 180 || durationInDays == 365 || durationInDays == 730, "Duration must be 6, 12, or 24 months");
+        require(durationInSecs > 0, "Duration must be > 0");
 
         uint256 startTime = block.timestamp;
-        uint256 endTime = startTime + (durationInDays * 1 days);
+        uint256 endTime = startTime + (durationInSecs * 1 seconds);
+    
 
         bool success = token.transferFrom(msg.sender, address(this), amount);
         require(success, "Transfer failed");
 
         uint256 lockId = lockHistory[msg.sender].length;
-
         lockHistory[msg.sender].push(LockEvent({
             lockId: lockId,
             amount: amount,
@@ -68,60 +68,55 @@ contract CliffLocker {
         emit Locked(msg.sender, lockId, amount, startTime, endTime);
     }
 
+    /// @notice Extend the lock period
+    function extendLock(uint256 lockId, uint256 additionalSecs) external {
+        require(lockId < lockHistory[msg.sender].length, "Invalid lock ID");
+        require(additionalSecs > 0, "Must extend by at least 1 Seconds");
+
+        LockEvent storage l = lockHistory[msg.sender][lockId];
+        require(!l.isClaimed, "Already claimed");
+
+        l.endTime += additionalSecs * 1 seconds;
+
+        emit LockExtended(msg.sender, lockId, l.endTime);
+    }
+
     function claim(uint256 lockId) external {
         require(lockId < lockHistory[msg.sender].length, "Invalid lock ID");
 
-        LockEvent storage le = lockHistory[msg.sender][lockId];
-        require(!le.isClaimed, "Already claimed");
-        require(block.timestamp >= le.endTime, "Tokens still locked");
+        LockEvent storage l = lockHistory[msg.sender][lockId];
+        require(!l.isClaimed, "Already claimed");
+        require(block.timestamp >= l.endTime, "Tokens still locked");
 
-        le.isClaimed = true;
+        l.isClaimed = true;
 
-        bool success = token.transfer(msg.sender, le.amount);
+        bool success = token.transfer(msg.sender, l.amount);
         require(success, "Transfer failed");
 
         claimHistory[msg.sender].push(ClaimEvent({
             lockId: lockId,
-            amount: le.amount,
+            amount: l.amount,
             claimedAt: block.timestamp
         }));
 
-        emit Claimed(msg.sender, lockId, le.amount, block.timestamp);
+        emit Claimed(msg.sender, lockId, l.amount, block.timestamp);
     }
 
     // === View Functions ===
 
-    function getLockHistory(uint256 offset) external view returns (LockEvent[] memory) {
-        uint256 limit = 10;
-        uint256 len = lockHistory[msg.sender].length;
-        if (offset >= len) return new LockEvent[](0) ;
-
-        uint256 end = offset + limit > len ? len : offset + limit;
-        LockEvent[] memory result = new LockEvent[](end - offset);
-        for (uint256 i = offset; i < end; i++) {
-            result[i - offset] = lockHistory[msg.sender][i];
-        }
-        return result;
+    function getLockHistory(address user) external view returns (LockEvent[] memory) {
+        return lockHistory[user];
     }
 
-    function getClaimHistory(uint256 offset) external view returns (ClaimEvent[] memory) {
-       uint256 limit = 10;
-        uint256 len = claimHistory[msg.sender].length;
-        if (offset >= len) return new ClaimEvent[](0) ;
-
-        uint256 end = offset + limit > len ? len : offset + limit;
-        ClaimEvent[] memory result = new ClaimEvent[](end - offset);
-        for (uint256 i = offset; i < end; i++) {
-            result[i - offset] = claimHistory[msg.sender][i];
-        }
-        return result;
+    function getClaimHistory(address user) external view returns (ClaimEvent[] memory) {
+        return claimHistory[user];
     }
 
-    function getClaimable(uint256 lockId) external view returns (uint256) {
-        if (lockId >= lockHistory[msg.sender].length) return 0;
-        LockEvent storage le = lockHistory[msg.sender][lockId];
-        if (!le.isClaimed && block.timestamp >= le.endTime) {
-            return le.amount;
+    function getClaimable(address user, uint256 lockId) external view returns (uint256) {
+        if (lockId >= lockHistory[user].length) return 0;
+        LockEvent storage l = lockHistory[user][lockId];
+        if (!l.isClaimed && block.timestamp >= l.endTime) {
+            return l.amount;
         }
         return 0;
     }
