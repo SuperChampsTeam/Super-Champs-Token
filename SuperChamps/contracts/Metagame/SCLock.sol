@@ -2,11 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract CliffLocker is Initializable, OwnableUpgradeable {
     struct LockEvent {
         uint256 lockId;
         uint256 amount;
@@ -30,28 +29,23 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     event Claimed(address indexed user, uint256 indexed lockId, uint256 amount, uint256 claimedAt);
     event LockExtended(address indexed user, uint256 indexed lockId, uint256 newEndTime);
 
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
-        _disableInitializers(); // prevents the logic contract from being initialized
+        _disableInitializers();
     }
 
     function initialize(address _token) public initializer {
         require(_token != address(0), "Token address is zero");
         token = IERC20(_token);
         __Ownable_init(msg.sender);
-        __UUPSUpgradeable_init();
     }
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function lock(uint256 amount, uint256 durationInSecs) external {
         require(amount > 0, "Amount must be > 0");
         require(durationInSecs > 0, "Duration must be > 0");
 
         uint256 startTime = block.timestamp;
-        uint256 endTime = startTime + (durationInSecs * 1 seconds);
-    
+        uint256 endTime = startTime + durationInSecs;
 
         bool success = token.transferFrom(msg.sender, address(this), amount);
         require(success, "Transfer failed");
@@ -68,15 +62,14 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         emit Locked(msg.sender, lockId, amount, startTime, endTime);
     }
 
-    /// @notice Extend the lock period
     function extendLock(uint256 lockId, uint256 additionalSecs) external {
         require(lockId < lockHistory[msg.sender].length, "Invalid lock ID");
-        require(additionalSecs > 0, "Must extend by at least 1 Seconds");
+        require(additionalSecs > 0, "Must extend by at least 1 second");
 
         LockEvent storage l = lockHistory[msg.sender][lockId];
         require(!l.isClaimed, "Already claimed");
 
-        l.endTime += additionalSecs * 1 seconds;
+        l.endTime += additionalSecs;
 
         emit LockExtended(msg.sender, lockId, l.endTime);
     }
@@ -102,7 +95,7 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         emit Claimed(msg.sender, lockId, l.amount, block.timestamp);
     }
 
-    // === View Functions ===
+    // View functions
 
     function getLockHistory(address user) external view returns (LockEvent[] memory) {
         return lockHistory[user];
@@ -115,7 +108,7 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     function getLockHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (LockEvent[] memory) {
         LockEvent[] storage history = lockHistory[user];
         uint256 total = history.length;
-        if (offset >= total) return new LockEvent[](0);
+        if (offset >= total) return new LockEvent ;
 
         uint256 end = offset + limit;
         if (end > total) end = total;
@@ -130,7 +123,7 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     function getClaimHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (ClaimEvent[] memory) {
         ClaimEvent[] storage history = claimHistory[user];
         uint256 total = history.length;
-        if (offset >= total) return new ClaimEvent[](0);
+        if (offset >= total) return new ClaimEvent ;
 
         uint256 end = offset + limit;
         if (end > total) end = total;
@@ -141,9 +134,6 @@ contract CliffLocker is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         }
         return result;
     }
-
-
-    
 
     function getClaimable(address user, uint256 lockId) external view returns (uint256) {
         if (lockId >= lockHistory[user].length) return 0;
