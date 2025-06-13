@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract CliffLocker is Initializable, OwnableUpgradeable {
+contract SCLock is Initializable, OwnableUpgradeable {
     struct LockEvent {
         uint256 lockId;
         uint256 amount;
@@ -108,7 +108,7 @@ contract CliffLocker is Initializable, OwnableUpgradeable {
     function getLockHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (LockEvent[] memory) {
         LockEvent[] storage history = lockHistory[user];
         uint256 total = history.length;
-        if (offset >= total) return new LockEvent ;
+        if (offset >= total) return new LockEvent[](0);
 
         uint256 end = offset + limit;
         if (end > total) end = total;
@@ -123,7 +123,7 @@ contract CliffLocker is Initializable, OwnableUpgradeable {
     function getClaimHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (ClaimEvent[] memory) {
         ClaimEvent[] storage history = claimHistory[user];
         uint256 total = history.length;
-        if (offset >= total) return new ClaimEvent ;
+        if (offset >= total) return new ClaimEvent[](0);
 
         uint256 end = offset + limit;
         if (end > total) end = total;
