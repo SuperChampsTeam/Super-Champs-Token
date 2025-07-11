@@ -1,0 +1,180 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x577B4f573DbbCc9D6ca83eFb5d1710209f31F5D3",
+    "txHash": "0x8bf6d933712816ff3b5d92f1a3e08915215e38d720ca270f15b7ad74de1b30ba"
+  },
+  "proxies": [
+    {
+      "address": "0x04De45E95C3550AE41244C29988f8B985AFb904b",
+      "txHash": "0x38b2f744f5a5bc922dbb3c6e7226e14fdc6ee39c23e1acb1a211021f667c835b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xb0bcF5aB7a8C2962E47772B7C63BF31Bb6576aa5",
+      "txHash": "0xee0ec3593b9922e05be211bd417e078d7092a822beb2f85179e3e46d3cf429e8",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5A0853903C475e1cC6Bbd043a524Cb0dEfD3206e",
+      "txHash": "0xe3e02ac63e42f191c19f150bbad86e966151b248c806b25601b17bf16273ecf0",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "10fa4aa648327bd2ebaaefbe80002ffeb1268bcedeab5cc6f013628c0e41bd91": {
+      "address": "0x20930bc59c92201523071cE3535F1fD3D68dA8B7",
+      "txHash": "0xe61b9fca7b211a3190afd2fd9a5bdda8ad1f8a242497436a4c19e6e7041f333e",
+      "layout": {
+        "solcVersion": "0.8.30",
+        "storage": [
+          {
+            "label": "token",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IERC20)1263",
+            "contract": "SCLock",
+            "src": "SuperChamps/contracts/Metagame/SCLock.sol:23"
+          },
+          {
+            "label": "lockHistory",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_mapping(t_address,t_array(t_struct(LockEvent)13118_storage)dyn_storage)",
+            "contract": "SCLock",
+            "src": "SuperChamps/contracts/Metagame/SCLock.sol:25"
+          },
+          {
+            "label": "claimHistory",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_address,t_array(t_struct(ClaimEvent)13125_storage)dyn_storage)",
+            "contract": "SCLock",
+            "src": "SuperChamps/contracts/Metagame/SCLock.sol:26"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(ClaimEvent)13125_storage)dyn_storage": {
+            "label": "struct SCLock.ClaimEvent[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(LockEvent)13118_storage)dyn_storage": {
+            "label": "struct SCLock.LockEvent[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)1263": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_array(t_struct(ClaimEvent)13125_storage)dyn_storage)": {
+            "label": "mapping(address => struct SCLock.ClaimEvent[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_array(t_struct(LockEvent)13118_storage)dyn_storage)": {
+            "label": "mapping(address => struct SCLock.LockEvent[])",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ClaimEvent)13125_storage": {
+            "label": "struct SCLock.ClaimEvent",
+            "members": [
+              {
+                "label": "lockId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "claimedAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(LockEvent)13118_storage": {
+            "label": "struct SCLock.LockEvent",
+            "members": [
+              {
+                "label": "lockId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "startTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "endTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "isClaimed",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

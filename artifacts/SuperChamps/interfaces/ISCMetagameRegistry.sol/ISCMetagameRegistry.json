@@ -1,0 +1,121 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ISCMetagameRegistry",
+  "sourceName": "SuperChamps/interfaces/ISCMetagameRegistry.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "address_",
+          "type": "address"
+        }
+      ],
+      "name": "addressToUserID",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "address_",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "metadata_key_",
+          "type": "string"
+        }
+      ],
+      "name": "metadataFromAddress",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "user_id_",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "metadata_key_",
+          "type": "string"
+        }
+      ],
+      "name": "metadataFromUserID",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "user_id_",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "add_address_",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "updated_key_",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "updated_value_",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "signature_expiry_ts_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "signature_nonce_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature_",
+          "type": "bytes"
+        }
+      ],
+      "name": "registerUserInfo",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
