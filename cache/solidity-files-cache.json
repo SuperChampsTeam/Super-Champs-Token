@@ -475,46 +475,6 @@
         "SignedMath"
       ]
     },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
-      "lastModificationDate": 1752263935159,
-      "contentHash": "2adca1150f58fc6f3d1f0a0f22ee7cca",
-      "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SafeCast"
-      ]
-    },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/math/Math.sol": {
       "lastModificationDate": 1752263935157,
       "contentHash": "5ec781e33d3a9ac91ffdc83d94420412",
@@ -556,6 +516,46 @@
       ],
       "artifacts": [
         "Math"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
+      "lastModificationDate": 1752263935159,
+      "contentHash": "2adca1150f58fc6f3d1f0a0f22ee7cca",
+      "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SafeCast"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/Panic.sol": {
@@ -680,48 +680,6 @@
         "Context"
       ]
     },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1752263935148,
-      "contentHash": "7c03c1e37c3dc24eafb76dc2b8a5c3a6",
-      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./IERC165.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "ERC165"
-      ]
-    },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
       "lastModificationDate": 1752263935146,
       "contentHash": "267d92fe4de67b1bdb3302c08f387dbf",
@@ -764,10 +722,10 @@
         "IERC721Errors"
       ]
     },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
-      "lastModificationDate": 1752263935156,
-      "contentHash": "12c206f185cb951213799561fdcaa40d",
-      "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
+      "lastModificationDate": 1752263935148,
+      "contentHash": "7c03c1e37c3dc24eafb76dc2b8a5c3a6",
+      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
         "version": "0.8.30",
         "settings": {
@@ -797,13 +755,13 @@
         }
       },
       "imports": [
-        "../IERC721.sol"
+        "./IERC165.sol"
       ],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "IERC721Metadata"
+        "ERC165"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/token/ERC721/utils/ERC721Utils.sol": {
@@ -847,6 +805,48 @@
       ],
       "artifacts": [
         "ERC721Utils"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
+      "lastModificationDate": 1752263935156,
+      "contentHash": "12c206f185cb951213799561fdcaa40d",
+      "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC721.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC721Metadata"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
@@ -927,6 +927,301 @@
       ],
       "artifacts": [
         "IERC721Receiver"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Seasons/GenesisNFTStaking.sol": {
+      "lastModificationDate": 1743765804198,
+      "contentHash": "1b73b3b39390d1dc396aca2c46c5c452",
+      "sourceName": "SuperChamps/contracts/Seasons/GenesisNFTStaking.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "@openzeppelin/contracts/utils/structs/EnumerableMap.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "GenesisNFTStaking"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/structs/EnumerableMap.sol": {
+      "lastModificationDate": 1752263935147,
+      "contentHash": "4c2441a8f52afec07ad38e3df442920f",
+      "sourceName": "@openzeppelin/contracts/utils/structs/EnumerableMap.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./EnumerableSet.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EnumerableMap"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol": {
+      "lastModificationDate": 1752263935147,
+      "contentHash": "9dea2f1d2615534fb7e64833ae92b7c3",
+      "sourceName": "@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Arrays.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EnumerableSet"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/Arrays.sol": {
+      "lastModificationDate": 1752263935142,
+      "contentHash": "87b3640dbda6477c44a91647d48ff29c",
+      "sourceName": "@openzeppelin/contracts/utils/Arrays.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./Comparators.sol",
+        "./SlotDerivation.sol",
+        "./StorageSlot.sol",
+        "./math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Arrays"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
+      "lastModificationDate": 1752263935159,
+      "contentHash": "e656d64c4ce918f3d13030b91c935134",
+      "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "StorageSlot"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/Comparators.sol": {
+      "lastModificationDate": 1752263935144,
+      "contentHash": "0e57405a6f979853cbfeb0df3546c3a3",
+      "sourceName": "@openzeppelin/contracts/utils/Comparators.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Comparators"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/SlotDerivation.sol": {
+      "lastModificationDate": 1752263935159,
+      "contentHash": "43950136ee6a1761d2cbed39d16bb1e0",
+      "sourceName": "@openzeppelin/contracts/utils/SlotDerivation.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SlotDerivation"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
@@ -1350,50 +1645,10 @@
         "MessageHashUtils"
       ]
     },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
-      "lastModificationDate": 1752263935159,
-      "contentHash": "e656d64c4ce918f3d13030b91c935134",
-      "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "StorageSlot"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/Arrays.sol": {
-      "lastModificationDate": 1752263935142,
-      "contentHash": "87b3640dbda6477c44a91647d48ff29c",
-      "sourceName": "@openzeppelin/contracts/utils/Arrays.sol",
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/NFTs/SCAccessPassRenderer.sol": {
+      "lastModificationDate": 1743765804199,
+      "contentHash": "6e3fa69fe0fe31961801d39bfe56b25f",
+      "sourceName": "SuperChamps/contracts/NFTs/SCAccessPassRenderer.sol",
       "solcConfig": {
         "version": "0.8.30",
         "settings": {
@@ -1423,232 +1678,62 @@
         }
       },
       "imports": [
-        "./Comparators.sol",
-        "./SlotDerivation.sol",
-        "./StorageSlot.sol",
-        "./math/Math.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Arrays"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/SlotDerivation.sol": {
-      "lastModificationDate": 1752263935159,
-      "contentHash": "43950136ee6a1761d2cbed39d16bb1e0",
-      "sourceName": "@openzeppelin/contracts/utils/SlotDerivation.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SlotDerivation"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/Comparators.sol": {
-      "lastModificationDate": 1752263935144,
-      "contentHash": "0e57405a6f979853cbfeb0df3546c3a3",
-      "sourceName": "@openzeppelin/contracts/utils/Comparators.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Comparators"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol": {
-      "lastModificationDate": 1752263935147,
-      "contentHash": "9dea2f1d2615534fb7e64833ae92b7c3",
-      "sourceName": "@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../Arrays.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "EnumerableSet"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/node_modules/@openzeppelin/contracts/utils/structs/EnumerableMap.sol": {
-      "lastModificationDate": 1752263935147,
-      "contentHash": "4c2441a8f52afec07ad38e3df442920f",
-      "sourceName": "@openzeppelin/contracts/utils/structs/EnumerableMap.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./EnumerableSet.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "EnumerableMap"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Seasons/GenesisNFTStaking.sol": {
-      "lastModificationDate": 1743765804198,
-      "contentHash": "1b73b3b39390d1dc396aca2c46c5c452",
-      "sourceName": "SuperChamps/contracts/Seasons/GenesisNFTStaking.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/utils/introspection/ERC165.sol",
-        "@openzeppelin/contracts/utils/structs/EnumerableMap.sol",
-        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol"
+        "@openzeppelin/contracts/utils/Strings.sol",
+        "../../interfaces/IPermissionsManager.sol",
+        "../../interfaces/IERC721MetadataRenderer.sol",
+        "../../interfaces/ISCAccessPass.sol"
       ],
       "versionPragmas": [
         "^0.8.24"
       ],
       "artifacts": [
-        "GenesisNFTStaking"
+        "SCAccessPassRenderer"
       ]
     },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Token/SCShop.sol": {
-      "lastModificationDate": 1743765804185,
-      "contentHash": "bda9cb30437d02f982e9b4284895a0e6",
-      "sourceName": "SuperChamps/contracts/Token/SCShop.sol",
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCAccessPass.sol": {
+      "lastModificationDate": 1743765804202,
+      "contentHash": "3cd184babb3fe3b99d1c8012a4eb9976",
+      "sourceName": "SuperChamps/interfaces/ISCAccessPass.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ISCAccessPass"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Seasons/SCSeasonRewards.sol": {
+      "lastModificationDate": 1747975361095,
+      "contentHash": "3df5ab8067b351b359b2745cbcb3c125",
+      "sourceName": "SuperChamps/contracts/Seasons/SCSeasonRewards.sol",
       "solcConfig": {
         "version": "0.8.30",
         "settings": {
@@ -1679,15 +1764,99 @@
       },
       "imports": [
         "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "../Utils/SCPermissionedAccess.sol",
         "../../interfaces/IPermissionsManager.sol",
-        "../Utils/SCPermissionedAccess.sol"
+        "../../interfaces/ISCSeasonRewards.sol",
+        "../../interfaces/ISCAccessPass.sol",
+        "../../interfaces/ISCMetagamePool.sol"
       ],
       "versionPragmas": [
         "^0.8.24"
       ],
       "artifacts": [
-        "SCShop"
+        "SCSeasonRewards"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCSeasonRewards.sol": {
+      "lastModificationDate": 1747975361096,
+      "contentHash": "060a8ab22f3e1a713d118bb4df4cc0b6",
+      "sourceName": "SuperChamps/interfaces/ISCSeasonRewards.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ISCSeasonRewards"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCMetagamePool.sol": {
+      "lastModificationDate": 1747975361096,
+      "contentHash": "af18151df2a8bc2b7bc2543ff2dacb93",
+      "sourceName": "SuperChamps/interfaces/ISCMetagamePool.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ISCMetagamePool"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/Synthetix/contracts/interfaces/IStakingRewards.sol": {
@@ -2027,46 +2196,6 @@
         "ISCMetagameDataSource"
       ]
     },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCAccessPass.sol": {
-      "lastModificationDate": 1743765804202,
-      "contentHash": "3cd184babb3fe3b99d1c8012a4eb9976",
-      "sourceName": "SuperChamps/interfaces/ISCAccessPass.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "ISCAccessPass"
-      ]
-    },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Metagame/SCMetagameLocations.sol": {
       "lastModificationDate": 1743765804194,
       "contentHash": "a05fc70ac88a7d5424c4a5b7f394a6b2",
@@ -2153,318 +2282,6 @@
       ],
       "artifacts": [
         "ISCMetagameRegistry"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Seasons/SCSeasonRewards.sol": {
-      "lastModificationDate": 1747975361095,
-      "contentHash": "3df5ab8067b351b359b2745cbcb3c125",
-      "sourceName": "SuperChamps/contracts/Seasons/SCSeasonRewards.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "../Utils/SCPermissionedAccess.sol",
-        "../../interfaces/IPermissionsManager.sol",
-        "../../interfaces/ISCSeasonRewards.sol",
-        "../../interfaces/ISCAccessPass.sol",
-        "../../interfaces/ISCMetagamePool.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "SCSeasonRewards"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCSeasonRewards.sol": {
-      "lastModificationDate": 1747975361096,
-      "contentHash": "060a8ab22f3e1a713d118bb4df4cc0b6",
-      "sourceName": "SuperChamps/interfaces/ISCSeasonRewards.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "ISCSeasonRewards"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCMetagamePool.sol": {
-      "lastModificationDate": 1747975361096,
-      "contentHash": "af18151df2a8bc2b7bc2543ff2dacb93",
-      "sourceName": "SuperChamps/interfaces/ISCMetagamePool.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "ISCMetagamePool"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Metagame/SCMetagamePool.sol": {
-      "lastModificationDate": 1747975361094,
-      "contentHash": "48e545520e6bcffce915b7c8de412684",
-      "sourceName": "SuperChamps/contracts/Metagame/SCMetagamePool.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "../Utils/SCPermissionedAccess.sol",
-        "../../interfaces/IPermissionsManager.sol",
-        "../../interfaces/ISCMetagamePool.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "SCMetagamePool"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Token/SCRewardsDispenser.sol": {
-      "lastModificationDate": 1743765804190,
-      "contentHash": "3aecf521fc66f2aa1dab33f55d092bab",
-      "sourceName": "SuperChamps/contracts/Token/SCRewardsDispenser.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
-        "@openzeppelin/contracts/utils/cryptography/EIP712.sol",
-        "../Utils/SCPermissionedAccess.sol",
-        "../../interfaces/IPermissionsManager.sol",
-        "../../interfaces/ISCSeasonRewards.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "SCRewardsDispenser"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/NFTs/SCAccessPassRenderer.sol": {
-      "lastModificationDate": 1743765804199,
-      "contentHash": "6e3fa69fe0fe31961801d39bfe56b25f",
-      "sourceName": "SuperChamps/contracts/NFTs/SCAccessPassRenderer.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/utils/Strings.sol",
-        "../../interfaces/IPermissionsManager.sol",
-        "../../interfaces/IERC721MetadataRenderer.sol",
-        "../../interfaces/ISCAccessPass.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "SCAccessPassRenderer"
-      ]
-    },
-    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/NFTs/SCAccessPass.sol": {
-      "lastModificationDate": 1743765804199,
-      "contentHash": "48f51d51f54ffa3179177160f6e0083a",
-      "sourceName": "SuperChamps/contracts/NFTs/SCAccessPass.sol",
-      "solcConfig": {
-        "version": "0.8.30",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": true
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "./SCAccessPassRenderer.sol",
-        "../../interfaces/ISCAccessPass.sol",
-        "../../interfaces/IPermissionsManager.sol",
-        "../../interfaces/IERC721MetadataRenderer.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "SCAccessPass"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Metagame/SCMetagameGenericDataView.sol": {
@@ -2557,6 +2374,51 @@
       ],
       "artifacts": [
         "SCMetagameRegistry"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Metagame/SCMetagamePool.sol": {
+      "lastModificationDate": 1747975361094,
+      "contentHash": "48e545520e6bcffce915b7c8de412684",
+      "sourceName": "SuperChamps/contracts/Metagame/SCMetagamePool.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "../Utils/SCPermissionedAccess.sol",
+        "../../interfaces/IPermissionsManager.sol",
+        "../../interfaces/ISCMetagamePool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "SCMetagamePool"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/interfaces/ISCMLRewards.sol": {
@@ -2907,6 +2769,98 @@
         "ABDKMath64x64"
       ]
     },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Token/SCShop.sol": {
+      "lastModificationDate": 1743765804185,
+      "contentHash": "bda9cb30437d02f982e9b4284895a0e6",
+      "sourceName": "SuperChamps/contracts/Token/SCShop.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "../../interfaces/IPermissionsManager.sol",
+        "../Utils/SCPermissionedAccess.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "SCShop"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Token/SCRewardsDispenser.sol": {
+      "lastModificationDate": 1743765804190,
+      "contentHash": "3aecf521fc66f2aa1dab33f55d092bab",
+      "sourceName": "SuperChamps/contracts/Token/SCRewardsDispenser.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+        "@openzeppelin/contracts/utils/cryptography/EIP712.sol",
+        "../Utils/SCPermissionedAccess.sol",
+        "../../interfaces/IPermissionsManager.sol",
+        "../../interfaces/ISCSeasonRewards.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "SCRewardsDispenser"
+      ]
+    },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Metagame/SCLock.sol": {
       "lastModificationDate": 1752155668988,
       "contentHash": "636205cc51cb0728bb03fbb480e4ca54",
@@ -3074,6 +3028,52 @@
       ],
       "artifacts": [
         "ContextUpgradeable"
+      ]
+    },
+    "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/NFTs/SCAccessPass.sol": {
+      "lastModificationDate": 1743765804199,
+      "contentHash": "48f51d51f54ffa3179177160f6e0083a",
+      "sourceName": "SuperChamps/contracts/NFTs/SCAccessPass.sol",
+      "solcConfig": {
+        "version": "0.8.30",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": true
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "./SCAccessPassRenderer.sol",
+        "../../interfaces/ISCAccessPass.sol",
+        "../../interfaces/IPermissionsManager.sol",
+        "../../interfaces/IERC721MetadataRenderer.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "SCAccessPass"
       ]
     },
     "/Users/sriharsha/Desktop/workspace/jrx/Super-Champs-Token/SuperChamps/contracts/Utils/DeployGnosisProxies.sol": {
