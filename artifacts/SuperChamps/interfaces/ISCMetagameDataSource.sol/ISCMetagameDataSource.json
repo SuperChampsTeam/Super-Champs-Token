@@ -1,0 +1,59 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ISCMetagameDataSource",
+  "sourceName": "SuperChamps/interfaces/ISCMetagameDataSource.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "location_",
+          "type": "string"
+        }
+      ],
+      "name": "getMembership",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addr_",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "location_",
+          "type": "string"
+        }
+      ],
+      "name": "getMultiplier",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
