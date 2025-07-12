@@ -1,6 +1,6 @@
 const sCLockVersion = "0";
 
-const sCLockAddress = "0x5A0853903C475e1cC6Bbd043a524Cb0dEfD3206e";
+const sCLockAddress = "0x36667b2357dE2B7b91CC79952C314D1756CCd2Ad";
 
 const sCLockAbi = [
   {
