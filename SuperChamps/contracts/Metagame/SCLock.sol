@@ -5,6 +5,18 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+interface ISCLockOld {
+    struct LockEvent {
+        uint256 lockId;
+        uint256 amount;
+        uint256 startTime;
+        uint256 endTime;
+        bool isClaimed;
+    }
+
+    function getLockHistory(address user) external view returns (LockEvent[] memory);
+}
+
 contract SCLock is Initializable, OwnableUpgradeable {
     struct LockEvent {
         uint256 lockId;
@@ -24,12 +36,12 @@ contract SCLock is Initializable, OwnableUpgradeable {
 
     mapping(address => LockEvent[]) private lockHistory;
     mapping(address => ClaimEvent[]) private claimHistory;
+    mapping(address => bool) public isLockImported; 
 
     event Locked(address indexed user, uint256 indexed lockId, uint256 amount, uint256 startTime, uint256 endTime);
     event Claimed(address indexed user, uint256 indexed lockId, uint256 amount, uint256 claimedAt);
     event LockExtended(address indexed user, uint256 indexed lockId, uint256 newEndTime);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
@@ -47,8 +59,7 @@ contract SCLock is Initializable, OwnableUpgradeable {
         uint256 startTime = block.timestamp;
         uint256 endTime = startTime + durationInSecs;
 
-        bool success = token.transferFrom(msg.sender, address(this), amount);
-        require(success, "Transfer failed");
+        require(token.transferFrom(msg.sender, address(this), amount), "Transfer failed");
 
         uint256 lockId = lockHistory[msg.sender].length;
         lockHistory[msg.sender].push(LockEvent({
@@ -83,8 +94,7 @@ contract SCLock is Initializable, OwnableUpgradeable {
 
         l.isClaimed = true;
 
-        bool success = token.transfer(msg.sender, l.amount);
-        require(success, "Transfer failed");
+        require(token.transfer(msg.sender, l.amount), "Transfer failed");
 
         claimHistory[msg.sender].push(ClaimEvent({
             lockId: lockId,
@@ -95,7 +105,39 @@ contract SCLock is Initializable, OwnableUpgradeable {
         emit Claimed(msg.sender, lockId, l.amount, block.timestamp);
     }
 
-    // View functions
+    /// @notice Admin-only import from older contract
+    function importLocksFromOldContract(address oldContract, address[] calldata users) external onlyOwner {
+        for (uint256 i = 0; i < users.length; i++) {
+            address user = users[i];
+            if (isLockImported[user]) {
+                continue;
+            }
+            ISCLockOld.LockEvent[] memory oldLocks = ISCLockOld(oldContract).getLockHistory(user);
+
+            for (uint256 j = 0; j < oldLocks.length; j++) {
+                ISCLockOld.LockEvent memory oldLock = oldLocks[j];
+
+                lockHistory[user].push(LockEvent({
+                    lockId: lockHistory[user].length,
+                    amount: oldLock.amount,
+                    startTime: oldLock.startTime,
+                    endTime: oldLock.endTime,
+                    isClaimed: oldLock.isClaimed
+                }));
+
+                emit Locked(user, lockHistory[user].length - 1, oldLock.amount, oldLock.startTime, oldLock.endTime);
+            }
+            isLockImported[user] = true;
+        }
+    }
+
+
+    function hasImportedLocks(address user) external view returns (bool) {
+        return isLockImported[user];
+    }
+
+
+    // === View Functions ===
 
     function getLockHistory(address user) external view returns (LockEvent[] memory) {
         return lockHistory[user];
@@ -108,7 +150,7 @@ contract SCLock is Initializable, OwnableUpgradeable {
     function getLockHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (LockEvent[] memory) {
         LockEvent[] storage history = lockHistory[user];
         uint256 total = history.length;
-        if (offset >= total) return new LockEvent[](0);
+        if (offset >= total) return new LockEvent[](0) ;
 
         uint256 end = offset + limit;
         if (end > total) end = total;
@@ -123,7 +165,7 @@ contract SCLock is Initializable, OwnableUpgradeable {
     function getClaimHistoryPaginated(address user, uint256 offset, uint256 limit) external view returns (ClaimEvent[] memory) {
         ClaimEvent[] storage history = claimHistory[user];
         uint256 total = history.length;
-        if (offset >= total) return new ClaimEvent[](0);
+        if (offset >= total) return new ClaimEvent[](0) ;
 
         uint256 end = offset + limit;
         if (end > total) end = total;
