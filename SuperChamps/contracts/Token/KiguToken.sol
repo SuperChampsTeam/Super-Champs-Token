@@ -17,9 +17,20 @@ contract KiguToken is IKigu {
     event Transfer(address indexed from, address indexed to, uint value);
     event Approval(address indexed owner, address indexed spender, uint value);
 
+    uint256 public constant INITIAL_SUPPLY = 10_000_000 * 1e18;
+
+    bool public isInitialMintDone;
+
     constructor() {
         minter = msg.sender;
         _mint(msg.sender, 0);
+    }
+
+    //assumption this should not be called on epoch filp
+    function initialMint(address _recipient) external {
+        require(msg.sender == minter && !isInitialMintDone);
+        isInitialMintDone = true;
+        _mint(_recipient, INITIAL_SUPPLY);
     }
 
 
