@@ -33,7 +33,7 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
     function initialize(address kiguToken) public initializer {
         __Ownable_init(_msgSender());
         _kigu = IKigu(kiguToken);
-        WEEK = 5 minutes;
+        WEEK = 1 weeks;
         activePeriod = ((block.timestamp + WEEK) / WEEK) * WEEK;
 
         // Default percentages in basis points
