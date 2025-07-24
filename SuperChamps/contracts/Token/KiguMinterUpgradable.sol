@@ -24,7 +24,6 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
 
     IKigu public _kigu;
 
-    bool public isInitialMintDone;
 
     event Minted(uint256 indexed week, uint256 amount, uint256 totalMinted);
 
@@ -33,7 +32,7 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
     function initialize(address kiguToken) public initializer {
         __Ownable_init(_msgSender());
         _kigu = IKigu(kiguToken);
-        WEEK = 1 weeks;
+        WEEK = 5 minutes;
         activePeriod = ((block.timestamp + WEEK) / WEEK) * WEEK;
 
         // Default percentages in basis points
@@ -57,17 +56,9 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
         decayPerWeek = decay;
     }
 
-    //assumption this should not be called on epoch filp
-    function mintInitialSupply() external onlyOwner {
-        require(!isInitialMintDone, "Already minted");
-        _kigu.mint(address(this), INITIAL_SUPPLY);
-        totalMinted += INITIAL_SUPPLY;
-        isInitialMintDone = true;
-    }
 
     function updatePeriod() external onlyOwner { 
         require(block.timestamp >= activePeriod + WEEK, "Too early");
-        require(isInitialMintDone, "Initial mint not done");
         require(totalMinted < MAX_TOTAL_SUPPLY, "Minting complete");
 
         epochCount += 1;
