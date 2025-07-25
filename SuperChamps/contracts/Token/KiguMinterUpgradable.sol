@@ -10,9 +10,7 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
     uint256 public constant MAX_TOTAL_SUPPLY = 200_000_000 * 1e18;
     uint256 public constant FIXED_MINT_END_WEEK = 30;
 
-    // Distribution in basis points: [66.67%, 13.33%, 13.33%, 6.67%]
     uint256[4] public distributionPercents;
-
     address[4] public distributionWallets;
 
     uint256 public totalMinted;
@@ -24,8 +22,10 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
 
     IKigu public _kigu;
 
+    address public minter;
 
     event Minted(uint256 indexed week, uint256 amount, uint256 totalMinted);
+    event MinterUpdated(address indexed newMinter);
 
     constructor() {}
 
@@ -34,10 +34,19 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
         _kigu = IKigu(kiguToken);
         WEEK = 1 weeks;
         activePeriod = ((block.timestamp + WEEK) / WEEK) * WEEK;
-
-        // Default percentages in basis points
         distributionPercents = [6667, 1333, 1333, 667];
         lastEmission = FIXED_WEEKLY_SUPPLY;
+    }
+
+    modifier onlyOwnerOrMinter() {
+        require(msg.sender == owner() || msg.sender == minter, "Not authorized");
+        _;
+    }
+
+    function setMinter(address _minter) external onlyOwner {
+        require(_minter != address(0), "Invalid minter");
+        minter = _minter;
+        emit MinterUpdated(_minter);
     }
 
     function setMintingConfig(
@@ -56,8 +65,7 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
         decayPerWeek = decay;
     }
 
-
-    function updatePeriod() external onlyOwner { 
+    function updatePeriod() external onlyOwnerOrMinter {
         require(block.timestamp >= activePeriod + WEEK, "Too early");
         require(totalMinted < MAX_TOTAL_SUPPLY, "Minting complete");
 
@@ -68,17 +76,13 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
         if (epochCount <= FIXED_MINT_END_WEEK) {
             emission = FIXED_WEEKLY_SUPPLY;
         } else {
-            //confirm that 3..2.7 2.4 or 10% of previous
-            //it will be decay of previous minitng not 3million
-            uint256 decayFactor = 100 - decayPerWeek ;
+            uint256 decayFactor = 100 - decayPerWeek;
             emission = (lastEmission * decayFactor) / 100;
         }
 
-        // Cap emission to not exceed max total
         if (totalMinted + emission > MAX_TOTAL_SUPPLY) {
             emission = MAX_TOTAL_SUPPLY - totalMinted;
         }
-        
 
         uint minterBalance = _kigu.balanceOf(address(this));
         emission -= minterBalance;
