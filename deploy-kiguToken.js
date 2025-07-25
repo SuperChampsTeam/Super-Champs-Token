@@ -9,6 +9,16 @@ const secondAddress = "";
 const thirdAddress = "";
 const fourthAddress = "";
 const minterAddress = "";
+const multiSigAddress = "";
+
+const wallets = [
+  firstAddress,
+  secondAddress,
+  thirdAddress,
+  fourthAddress
+];
+const percents = [6667, 1333, 1333, 667];
+const decay = 3;
 
 const verifyContract = async (contractName, contractAddress, constructorArgs = []) => {
   try {
@@ -106,14 +116,7 @@ async function main() {
   console.log("✅ KiguToken.setMinter(KiguMinter) done");
 
   // 5. Set minting config
-  const wallets = [
-    firstAddress,
-    secondAddress,
-    thirdAddress,
-    fourthAddress
-  ];
-  const percents = [6667, 1333, 1333, 667];
-  const decay = 3;
+
 
   const configTx = await kiguMinterProxy.setMintingConfig(wallets, percents, decay);
   await configTx.wait();
@@ -124,6 +127,12 @@ async function main() {
   const delegateMinterTx = await kiguMinterProxy.setMinter(newMinter);
   await delegateMinterTx.wait();
   console.log(`✅ KiguMinter.setMinter(${newMinter}) done`);
+
+  // 7. giving ownership to multisig
+  const transferOwnershipTx = await kiguMinterProxy.transferOwnership(multiSigAddress);
+  await transferOwnershipTx.wait();
+  console.log(`✅ KiguMinterUpgradeable ownership transferred to ${multiSigAddress}`);
+
 }
 
 main().then(() => {
