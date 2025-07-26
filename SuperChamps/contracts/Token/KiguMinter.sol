@@ -84,9 +84,12 @@ contract KiguMinterUpgradeable is OwnableUpgradeable {
             emission = MAX_TOTAL_SUPPLY - totalMinted;
         }
 
+        //TODO:: check with products and sandeep
         uint minterBalance = _kigu.balanceOf(address(this));
-        emission -= minterBalance;
-        totalMinted += emission;
+        if (minterBalance < emission) {
+            _kigu.mint(address(this), emission - minterBalance);
+            totalMinted += emission - minterBalance;
+        }
         _kigu.mint(address(this), emission);
 
         lastEmission = emission;

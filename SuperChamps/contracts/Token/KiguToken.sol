@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import "../.././interfaces/IKigu.sol";
 
-contract KiguToken is IKigu {
+contract KiguToken is IKigu, IERC20Burnable {
     string public constant name = "KIGU";
     string public constant symbol = "KIGU";
     uint8 public constant decimals = 18;
