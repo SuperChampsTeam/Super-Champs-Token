@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.24;
 
-import "../.././interfaces/IKigu.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Burnable.sol";
 
-contract KiguToken is IKigu, IERC20Burnable {
+contract KiguToken is IKigu {
     string public constant name = "KIGU";
     string public constant symbol = "KIGU";
     uint8 public constant decimals = 18;
@@ -26,13 +27,12 @@ contract KiguToken is IKigu, IERC20Burnable {
         _mint(msg.sender, 0);
     }
 
-    //assumption this should not be called on epoch filp
+    // One-time mint on deployment
     function initialMint(address _recipient) external {
-        require(msg.sender == minter && !isInitialMintDone);
+        require(msg.sender == minter && !isInitialMintDone, "Already minted or not minter");
         isInitialMintDone = true;
         _mint(_recipient, INITIAL_SUPPLY);
     }
-
 
     function _mint(address _to, uint _amount) internal returns (bool) {
         totalSupply += _amount;
@@ -43,7 +43,7 @@ contract KiguToken is IKigu, IERC20Burnable {
         return true;
     }
 
-    function mint(address _to, uint _amount) external override returns (bool) {
+    function mint(address _to, uint _amount) external returns (bool) {
         require(msg.sender == minter, "Only minter can mint");
         return _mint(_to, _amount);
     }
@@ -76,16 +76,16 @@ contract KiguToken is IKigu, IERC20Burnable {
     }
 
     function setMinter(address _minter) external {
-        require(msg.sender == minter);
+        require(msg.sender == minter, "Only current minter can set new minter");
         minter = _minter;
     }
 
-    function burn(uint256 value) external returns (bool) {
+    function burn(uint256 value) external override returns (bool) {
         _burn(msg.sender, value);
         return true;
     }
 
-    function burnFrom(address _from, uint _value) external returns (bool) {
+    function burnFrom(address _from, uint _value) external override returns (bool) {
         uint allowed_from = allowance[_from][msg.sender];
         if (allowed_from != type(uint).max) {
             allowance[_from][msg.sender] -= _value;
@@ -97,7 +97,7 @@ contract KiguToken is IKigu, IERC20Burnable {
     function _burn(address _from, uint _amount) internal returns (bool) {
         totalSupply -= _amount;
         balanceOf[_from] -= _amount;
-        emit Transfer(_from, address(0x0), _amount);
+        emit Transfer(_from, address(0), _amount);
         return true;
     }
 }

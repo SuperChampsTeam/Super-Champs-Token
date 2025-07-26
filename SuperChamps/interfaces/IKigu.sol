@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.24;
 
-interface IKigu {
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Burnable.sol";
 
-
-   function balanceOf(address owner) external view returns (uint);
+interface IKigu is IERC20, IERC20Burnable {
 
     function mint(address to, uint amount) external returns (bool);
 
-    function transfer(address to, uint value) external returns (bool);
-
-    function transferFrom(address from, address to, uint value) external returns (bool);
-
-    function approve(address spender, uint value) external returns (bool);
 }
