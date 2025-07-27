@@ -23,11 +23,11 @@ contract KiguMinter {
     event EmissionContractUpdated(address indexed newEmissionContract);
 
     constructor(address kiguToken, address _emissionContract) {
-        require(emissionContract == address(0), "NotEmissionContract");
-        require(kiguToken == address(0), "NotKiguTokenContract");
+        require(_emissionContract != address(0), "NotEmissionContract");
+        require(kiguToken != address(0), "NotKiguTokenContract");
         _kigu = IKigu(kiguToken);
         emissionContract = _emissionContract;
-        WEEK = 1 weeks;
+        WEEK = 30 seconds;
         activePeriod = ((block.timestamp + WEEK) / WEEK) * WEEK;
         lastEmission = FIXED_WEEKLY_SUPPLY;
     }
