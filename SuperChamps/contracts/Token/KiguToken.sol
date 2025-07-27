@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Burnable.sol";
-
 contract KiguToken is IKigu {
     string public constant name = "KIGU";
     string public constant symbol = "KIGU";
