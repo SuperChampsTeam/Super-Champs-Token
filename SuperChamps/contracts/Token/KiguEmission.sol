@@ -30,7 +30,10 @@ contract KiguEmission is OwnableUpgradeable {
         emissionManager = _emissionManager;
     }
 
-
+    modifier onlyOwnerOrEmissionManager() {
+        require(msg.sender == emissionManager || msg.sender == owner(), "Not authorized");
+        _;
+    }
 
     function setWalletsAndPercents(
         address[4] calldata _wallets,
@@ -44,7 +47,7 @@ contract KiguEmission is OwnableUpgradeable {
         percents = _percents;
     }
 
-    function mintTokenAndDistribute() external onlyOwner {
+    function mintTokenAndDistribute() external onlyOwnerOrEmissionManager {
         uint256 emission = minter.mintKiguToken();
 
         for (uint256 i = 0; i < 4; i++) {
