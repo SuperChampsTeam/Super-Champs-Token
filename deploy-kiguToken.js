@@ -1,51 +1,45 @@
 const { ethers, upgrades, run } = require("hardhat");
 const { fetchAbi } = require('./abi-fetcher.js');
-const fs = require('fs');
+const fs = require("fs");
 
 const dirPath = './generated';
 
+const initalMintAddress = "";
 const firstAddress = "";
 const secondAddress = "";
 const thirdAddress = "";
 const fourthAddress = "";
-const minterAddress = "";
+const minterEOA = ""; // your EOA wallet to manage emissions
 const multiSigAddress = "";
 
-const wallets = [
-  firstAddress,
-  secondAddress,
-  thirdAddress,
-  fourthAddress
-];
+const wallets = [firstAddress, secondAddress, thirdAddress, fourthAddress];
 const percents = [6667, 1333, 1333, 667];
-const decay = 3;
+const decay = 300;
 
-const verifyContract = async (contractName, contractAddress, constructorArgs = []) => {
+const verifyContract = async (name, address, args = []) => {
   try {
     await run("verify:verify", {
-      address: contractAddress,
-      constructorArguments: constructorArgs,
+      address,
+      constructorArguments: args,
       noCompile: true,
     });
-    console.log(`✅ Verified ${contractName} at ${contractAddress}`);
-  } catch (error) {
-    if (error.message.toLowerCase().includes("already verified")) {
-      console.log(`ℹ️ ${contractName} already verified.`);
+    console.log(`✅ Verified ${name} at ${address}`);
+  } catch (err) {
+    if (err.message.toLowerCase().includes("already verified")) {
+      console.log(`ℹ️ ${name} already verified.`);
     } else {
-      console.error(`❌ Verification failed for ${contractName}:`, error.message);
-   //   process.exit(1);
+      console.error(`❌ Verification failed for ${name}:`, err.message);
     }
   }
 };
 
-const verifyContractProxy = async (contractName, proxyAddress, constructorArgs = []) => {
+const verifyContractProxy = async (name, proxyAddress) => {
   try {
     const implAddress = await upgrades.erc1967.getImplementationAddress(proxyAddress);
-    console.log(`📍 Implementation address for ${contractName}:`, implAddress);
-    await verifyContract(`${contractName}_Impl`, implAddress, constructorArgs);
-  } catch (error) {
-    console.error(`❌ Proxy verification failed for ${contractName}:`, error.message);
- //   process.exit(1);
+    console.log(`📍 Impl address for ${name}: ${implAddress}`);
+    await verifyContract(`${name}_Impl`, implAddress);
+  } catch (err) {
+    console.error(`❌ Proxy verification failed for ${name}:`, err.message);
   }
 };
 
@@ -65,37 +59,28 @@ module.exports = { ${camel}Version, ${camel}Address, ${camel}Abi };`;
   console.log(`✅ ABI + address saved: ${dirPath}/${contract}.js`);
 };
 
-async function getFeeData() {
-  const { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
-  return { maxFeePerGas, maxPriorityFeePerGas };
-}
-
 async function main() {
   const [deployer] = await ethers.getSigners();
-  console.log("🚀 Deploying from:", deployer.address);
-
-  const feeData = await getFeeData();
+  console.log("🚀 Deployer:", deployer.address);
+  const feeData = await ethers.provider.getFeeData();
 
   // 1. Deploy KiguToken
   const KiguToken = await ethers.getContractFactory("KiguToken");
   const kiguToken = await KiguToken.deploy();
   await kiguToken.deployed();
-  console.log("✅ KiguToken deployed at:", kiguToken.address);
-
+  console.log("✅ KiguToken deployed:", kiguToken.address);
   generateConstantFile("KiguToken", kiguToken.address);
-  await verifyContract("KiguToken", kiguToken.address, []);
+  await verifyContract("KiguToken", kiguToken.address);
 
-  // 2. Call initialMint to deployer (or designated address)
-  const initialReceiver = deployer.address;
-
-  const mintTx = await kiguToken.initialMint(initialReceiver);
+  // 2. Initial mint
+  const mintTx = await kiguToken.initialMint(initalMintAddress);
   await mintTx.wait();
-  console.log(`✅ initialMint(${initialReceiver} done`);
+  console.log("✅ initialMint to:",initalMintAddress);
 
-  // 3. Deploy KiguMinterUpgradeable via Proxy
-  const KiguMinter = await ethers.getContractFactory("KiguMinterUpgradeable");
-  const kiguMinterProxy = await upgrades.deployProxy(
-    KiguMinter,
+  // 3. Deploy KiguEmission (upgradeable)
+  const KiguEmission = await ethers.getContractFactory("KiguEmission");
+  const emission = await upgrades.deployProxy(
+    KiguEmission,
     [kiguToken.address],
     {
       initializer: "initialize",
@@ -104,39 +89,42 @@ async function main() {
       ...feeData,
     }
   );
-  await kiguMinterProxy.deployed();
-  console.log("✅ KiguMinterUpgradeable Proxy deployed at:", kiguMinterProxy.address);
+  await emission.deployed();
+  console.log("✅ KiguEmission deployed (proxy):", emission.address);
+  generateConstantFile("KiguEmission", emission.address);
+  await verifyContractProxy("KiguEmission", emission.address);
 
-  generateConstantFile("KiguMinterUpgradeable", kiguMinterProxy.address);
-  await verifyContractProxy("KiguMinterUpgradeable", kiguMinterProxy.address, []);
+  // 4. Set emission wallets & config
+  await (await emission.setWalletsAndPercents(wallets, percents)).wait();
+  await (await emission.setEmissionManager(minterEOA)).wait();
+  console.log("✅ Emission config done");
 
-  // 4. Set minter on token to the minter proxy
-  const setMinterTx = await kiguToken.setMinter(kiguMinterProxy.address);
-  await setMinterTx.wait();
-  console.log("✅ KiguToken.setMinter(KiguMinter) done");
+  // 5. Deploy KiguMinter (regular contract)
+  const KiguMinter = await ethers.getContractFactory("KiguMinter"); // naming kept for consistency
+  const kiguMinter = await KiguMinter.deploy(kiguToken.address, emission.address);
+  await kiguMinter.deployed();
+  console.log("✅ KiguMinter deployed:", kiguMinter.address);
+  generateConstantFile("KiguMinter", kiguMinter.address); // still usable
+  await verifyContract("KiguMinter", kiguMinter.address, [
+    kiguToken.address,
+    emission.address,
+  ]);
 
-  // 5. Set minting config
+  // 6. Set minter in KiguToken
+  await (await kiguToken.setMinter(kiguMinter.address)).wait();
+  console.log("✅ Token.setMinter done");
 
+  // 7. Set minter in Emission
+  await (await emission.setMinter(kiguMinter.address)).wait();
+  console.log("✅ Emission.setMinter done");
 
-  const configTx = await kiguMinterProxy.setMintingConfig(wallets, percents, decay);
-  await configTx.wait();
-  console.log("✅ setMintingConfig done");
-
-  // 6. Optionally delegate minter role inside minter
-  const newMinter = minterAddress; // replace as needed
-  const delegateMinterTx = await kiguMinterProxy.setMinter(newMinter);
-  await delegateMinterTx.wait();
-  console.log(`✅ KiguMinter.setMinter(${newMinter}) done`);
-
-  // 7. giving ownership to multisig
-  const transferOwnershipTx = await kiguMinterProxy.transferOwnership(multiSigAddress);
-  await transferOwnershipTx.wait();
-  console.log(`✅ KiguMinterUpgradeable ownership transferred to ${multiSigAddress}`);
-
+  // Optional: Transfer ownership to multisig
+  await (await KiguEmission.transferOwnership(multiSigAddress)).wait();
+  console.log(`✅ KiguMinter ownership transferred to ${multiSigAddress}`);
 }
 
 main().then(() => {
-  console.log("🎉 Deployment complete.");
+  console.log("🎉 Full deployment complete.");
 }).catch((err) => {
   console.error("❌ Deployment failed:", err);
   process.exit(1);
