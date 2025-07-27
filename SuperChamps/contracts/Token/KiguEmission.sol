@@ -3,11 +3,11 @@ pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../.././interfaces/IKiguMinter.sol";
-import "../.././interfaces/IKigu.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 contract KiguEmission is OwnableUpgradeable {
-    IKigu public token;
+    IERC20 public token;
     IKiguMinter public minter;
 
     address[4] public wallets;
@@ -19,7 +19,7 @@ contract KiguEmission is OwnableUpgradeable {
 
     function initialize(address _token) public initializer {
         __Ownable_init(_msgSender());
-        token = IKigu(_token);
+        token = IERC20(_token);
     }
 
     function setMinter(address _minter) external onlyOwner{
