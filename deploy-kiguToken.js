@@ -4,13 +4,13 @@ const fs = require("fs");
 
 const dirPath = './generated';
 
-const initalMintAddress = "";
-const firstAddress = "";
-const secondAddress = "";
-const thirdAddress = "";
-const fourthAddress = "";
-const minterEOA = ""; // your EOA wallet to manage emissions
-const multiSigAddress = "";
+const initalMintAddress = "0x97ecd0c78bccec8c4be2a5c0d4e2ece81dcef5ea";
+const firstAddress = "0x97ecd0c78bccec8c4be2a5c0d4e2ece81dcef5ea";
+const secondAddress = "0x8623b03c93f88f537BD65908D7283e8c0E116d1D";
+const thirdAddress = "0x2d7869299C9cB7Ba3a702F172FC3a0079D82A1Db";
+const fourthAddress = "0x8623b03c93f88f537BD65908D7283e8c0E116d1D";
+const minterEOA = "0x2d7869299C9cB7Ba3a702F172FC3a0079D82A1Db"; // your EOA wallet to manage emissions
+const multiSigAddress = "0x52082AF7f3AA5DCB8f12625136f50B88067528Ea";
 
 const wallets = [firstAddress, secondAddress, thirdAddress, fourthAddress];
 const percents = [6667, 1333, 1333, 667];
@@ -119,8 +119,8 @@ async function main() {
   console.log("✅ Emission.setMinter done");
 
   // Optional: Transfer ownership to multisig
-  await (await KiguEmission.transferOwnership(multiSigAddress)).wait();
-  console.log(`✅ KiguMinter ownership transferred to ${multiSigAddress}`);
+  await (await emission.transferOwnership(multiSigAddress)).wait();
+  console.log(`✅ KiguEmission ownership transferred to ${multiSigAddress}`);
 }
 
 main().then(() => {

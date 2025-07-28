@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "../../interfaces/IKigu.sol";
 
-contract KiguToken is ERC20, ERC20Burnable, IKigu {
+contract KiguToken is ERC20, ERC20Burnable {
     address public minter;
     bool public isInitialMintDone;
 
@@ -26,7 +26,7 @@ contract KiguToken is ERC20, ERC20Burnable, IKigu {
         _mint(_recipient, INITIAL_SUPPLY);
     }
 
-    function mint(address _to, uint256 _amount) external onlyMinter override returns (bool) {
+    function mint(address _to, uint256 _amount) external onlyMinter returns (bool) {
         _mint(_to, _amount);
         return true;
     }
