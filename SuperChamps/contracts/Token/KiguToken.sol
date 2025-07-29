@@ -10,6 +10,8 @@ contract KiguToken is ERC20, ERC20Burnable {
     bool public isInitialMintDone;
 
     uint256 public constant INITIAL_SUPPLY = 10_000_000 * 1e18;
+    uint256 public constant INITIAL_MINT_SUPPLY = 3_000_000 * 1e18;
+    uint8 public constant wallet_length = 4;
 
     constructor() ERC20("KIGU", "KIGU") {
         minter = msg.sender;
@@ -20,10 +22,21 @@ contract KiguToken is ERC20, ERC20Burnable {
         _;
     }
 
-    function initialMint(address _recipient) external onlyMinter {
+    function initialMint(address _recipient,  address[4] calldata _wallets,
+        uint256[4] calldata _percents) external onlyMinter {
         require(!isInitialMintDone, "Initial mint done");
+         require(_wallets.length == wallet_length && _percents.length == wallet_length, "lengthSize4Only");
+        require(
+            _percents[0] + _percents[1] + _percents[2] + _percents[3] == 10_000,
+            "Invalid percentages"
+        );
+
         isInitialMintDone = true;
         _mint(_recipient, INITIAL_SUPPLY);
+         for (uint8 i = 0; i < wallet_length; i++) {
+            uint256 share = (INITIAL_MINT_SUPPLY * _percents[i]) / 10_000;
+            _mint(_wallets[i], share);
+        }
     }
 
     function mint(address _to, uint256 _amount) external onlyMinter returns (bool) {
