@@ -44,6 +44,29 @@ const verifyContractProxy = async (name, proxyAddress) => {
   }
 };
 
+
+// async function transferProxyAdminOwnership() {
+//   console.log("\n--- Transferring Proxy Admin Ownership ---");
+
+//   try {
+//     const newOwner = multiSigAddress;
+//     console.log(`Transferring Proxy Admin ownership to ${newOwner}...`);
+
+//     const { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
+
+//     const proxyAdmin = await upgrades.admin.getInstance(); // Get ProxyAdmin contract
+//     const tx = await proxyAdmin.transferOwnership(newOwner, {
+//       maxFeePerGas,
+//       maxPriorityFeePerGas,
+//     });
+
+//     await tx.wait();
+//     console.log("✅ Proxy Admin ownership transferred to TECH WALLET.");
+//   } catch (error) {
+//     console.error("❌ Error transferring Proxy Admin ownership:", error);
+//   }
+// }
+
 const generateConstantFile = (contract, address) => {
   const abi = fetchAbi(contract);
   const camel = contract.charAt(0).toLowerCase() + contract.slice(1);
@@ -120,7 +143,8 @@ async function main() {
   console.log("✅ Emission.setMinter done");
 
   // Optional: Transfer ownershi of proxy address to multisig
-  await (await emission.transferOwnership(multiSigAddress)).wait();
+  const proxyAdmin = await ethers.getContractAt("ProxyAdmin", proxyAdminAddress);
+  await (await proxyAdmin.transferOwnership(multiSigAddress)).wait();
   console.log(`✅ KiguEmission ownership transferred to ${multiSigAddress}`);
 }
 
