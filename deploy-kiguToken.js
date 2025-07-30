@@ -97,7 +97,7 @@ async function main() {
   await verifyContract("KiguToken", kiguToken.address);
 
   // 2. Initial mint
-  const mintTx = await kiguToken.initialMint(initalMintAddress, wallets, percents);
+  const mintTx = await kiguToken.initialMint(initalMintAddress);
   await mintTx.wait();
   console.log("✅ initialMint to:",initalMintAddress);
 
