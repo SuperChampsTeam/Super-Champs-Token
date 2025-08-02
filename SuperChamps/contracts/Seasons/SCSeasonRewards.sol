@@ -65,6 +65,14 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         staking_pool = ISCMetagamePool(staking_pool_);
     }
 
+    /// @notice Updates the staking pool contract address.
+    /// @dev Only callable by Global Admins.
+    /// @param stakingPool_ The new staking pool address.
+    function setStakingPool(address stakingPool_) external isGlobalAdmin {
+        require(stakingPool_ != address(0), "Invalid staking pool address");
+        staking_pool = ISCMetagamePool(stakingPool_);
+    }
+
     ///@notice Updates the address of the account/contract that the Seasons reward system pulls reward tokens from.
     ///@dev Only callable by Global Admins.
     ///@param treasury_ The address of the new treasury.
@@ -275,6 +283,7 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         uint256 season_id_
     ) external
     {
+        require(address(staking_pool) != address(0), "Staking pool not set");
         uint256 _reward = _preClaim(season_id_);
         token.approve(address(staking_pool), _reward);
         staking_pool.stakeFor(msg.sender, _reward);
