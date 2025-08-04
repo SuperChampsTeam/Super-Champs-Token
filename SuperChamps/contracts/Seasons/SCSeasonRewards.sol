@@ -192,7 +192,6 @@ contract SCSeasonRewards is ISCSeasonRewards, SCPermissionedAccess{
         require(!isSeasonFinalized(_season), "SEASON_FINALIZED");
         require(_season.reward_amount > 0, "NO REWARDS REPORTED");
         require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT MISMATCH");
-       //require(reward_amount_ == _season.reward_amount, "REWARD AMOUNT DOESN'T MATCH");
         require(claim_duration_ >= 7 days && claim_duration_ < 1000 days, "CLAIM DURATION OUT OF BOUNDS");
 
         token.transferFrom(treasury, address(this), reward_amount_);
