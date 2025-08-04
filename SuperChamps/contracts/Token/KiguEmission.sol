@@ -60,7 +60,7 @@ contract KiguEmission is Ownable {
     }
 
     function mintTokenAndDistribute() external onlyOwnerOrEmissionManager {
-        require(_wallets[0] != address(0), "setWalletDetailsFirst");
+        require(wallets[0] != address(0), "setWalletDetailsFirst");
         uint256 emission = minter.mintKiguToken();
 
         for (uint8 i = 0; i < wallet_length; i++) {
