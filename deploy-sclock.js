@@ -103,12 +103,12 @@ const deploySCLock = async () => {
     const feeData = await getFeeData();
 
     // direct deployment (no proxy)
-    const scLock = await SCLockFactory.deploy(tokenAddress, { ...feeData });
+    const scLock = await SCLockFactory.deploy();
     await scLock.deployed();
     console.log("✅ SCLock deployed at:", scLock.address);
 
     generateConstantFile("SCLock", scLock.address);
-    await verifyContract("SCLock", scLock.address, [tokenAddress]);
+    await verifyContract("SCLock", scLock.address, []);
   } catch (err) {
     console.error("❌ Error deploying SCLock:", err);
     process.exit(1);
