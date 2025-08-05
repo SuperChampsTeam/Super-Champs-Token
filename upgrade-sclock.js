@@ -64,46 +64,54 @@ const generateConstantFile = (contract, address) => {
   }
 };
 
-async function getFeeData() {
+const getFeeData = async () => {
   const { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
   return { maxFeePerGas, maxPriorityFeePerGas };
-}
+};
 
-const deploySCLock = async () => {
+const upgradeSCLock = async () => {
   try {
+    const proxyAddress = "0x93766606E18104FC328766F10dbA78174A2eCf53"; // Replace with your actual proxy address
     const SCLockFactory = await ethers.getContractFactory("SCLock");
     const feeData = await getFeeData();
 
-    const scLockProxy = await upgrades.deployProxy(
-      SCLockFactory,
-      ['0xEb6d78148F001F3aA2f588997c5E102E489Ad341'], // constructor args
-      {
-        initializer: "initialize",
-        timeout: 180000,
-        pollingInterval: 3000,
-        ...feeData,
-      }
-    );
+    console.log("📦 Old implementation address:", await upgrades.erc1967.getImplementationAddress(proxyAddress));
+    console.log("🔁 Upgrading proxy...");
 
-    await scLockProxy.deployed();
-    console.log("✅ SCLock Proxy Address: ", scLockProxy.address);
+     // Register existing proxy with the upgrade plugin
+    const proxy = await upgrades.forceImport(proxyAddress, SCLockFactory);
 
-    generateConstantFile("SCLock", scLockProxy.address);
-    await verifyContractProxy("SCLock", scLockProxy.address, []);
+    console.log("✅ Proxy force-imported at:", proxy.address);
+
+    const upgraded = await upgrades.upgradeProxy(proxyAddress, SCLockFactory, {
+      redeployImplementation: "always",
+      kind: "transparent",
+      ...feeData,
+    });
+    await upgraded.deployed();
+
+    console.log("🔁 Upgrade complete. Proxy address:", upgraded.address);
+    console.log("🎯 New implementation address:", await upgrades.erc1967.getImplementationAddress(proxyAddress));
+
+    console.log("✅ Upgrade complete. Proxy address:", upgraded.address);
+    const newImpl = await upgrades.erc1967.getImplementationAddress(proxyAddress);
+    console.log("🎯 New implementation address:", newImpl);
+
+    generateConstantFile("SCLock", proxyAddress);
+    await verifyContractProxy("SCLock", proxyAddress, []);
   } catch (error) {
-    console.error("❌ Error in deploySCLock: ", error);
+    console.error("❌ Error in upgradeSCLock: ", error);
     process.exit(1);
   }
 };
 
 async function main() {
-  await deploySCLock();
+  await upgradeSCLock();
 }
 
 main()
-  .then(() => console.log("🎉 Done!"))
+  .then(() => console.log("🎉 SCLock upgrade done!"))
   .catch((err) => {
     console.error("❌ Error in main execution: ", err);
     process.exit(1);
   });
-  
