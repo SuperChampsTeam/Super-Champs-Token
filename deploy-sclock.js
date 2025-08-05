@@ -76,7 +76,7 @@ const deploySCLock = async () => {
 
     const scLockProxy = await upgrades.deployProxy(
       SCLockFactory,
-      ['0x20324Ddb80da7F613D1312e9fE1E29F6dc83c6BE'], // constructor args
+      ['0xEb6d78148F001F3aA2f588997c5E102E489Ad341'], // constructor args
       {
         initializer: "initialize",
         timeout: 180000,
@@ -106,3 +106,4 @@ main()
     console.error("❌ Error in main execution: ", err);
     process.exit(1);
   });
+  
