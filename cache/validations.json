@@ -159,12 +159,30 @@
         },
         "solcVersion": "0.8.30"
       },
-      "SuperChamps/contracts/Metagame/SCLock.sol:SCLock": {
+      "SuperChamps/contracts/Metagame/SCLock.sol:ISCLockOld": {
         "src": "SuperChamps/contracts/Metagame/SCLock.sol:8",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "getLockHistory(address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.30"
+      },
+      "SuperChamps/contracts/Metagame/SCLock.sol:SCLock": {
+        "src": "SuperChamps/contracts/Metagame/SCLock.sol:20",
         "version": {
-          "withMetadata": "0233df65e047d6b6ce14667589e440908405562a0ed366a9565a6b71e4afea3b",
-          "withoutMetadata": "10fa4aa648327bd2ebaaefbe80002ffeb1268bcedeab5cc6f013628c0e41bd91",
-          "linkedWithoutMetadata": "10fa4aa648327bd2ebaaefbe80002ffeb1268bcedeab5cc6f013628c0e41bd91"
+          "withMetadata": "f8661eea6b4857941be8550da6e01e094f91caf3a3fc3fae1880adf8c4da095b",
+          "withoutMetadata": "50642b0fbc1985a899010ce4adc0790bc107d37369bd6ffc2fb31996d7ba274c",
+          "linkedWithoutMetadata": "50642b0fbc1985a899010ce4adc0790bc107d37369bd6ffc2fb31996d7ba274c"
         },
         "inherit": [
           "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:OwnableUpgradeable",
@@ -178,6 +196,8 @@
           "lock(uint256,uint256)",
           "extendLock(uint256,uint256)",
           "claim(uint256)",
+          "importLocksFromOldContract(address,address[])",
+          "hasImportedLocks(address)",
           "getLockHistory(address)",
           "getClaimHistory(address)",
           "getLockHistoryPaginated(address,uint256,uint256)",
@@ -194,23 +214,31 @@
               "slot": "0",
               "type": "t_contract(IERC20)586",
               "contract": "SCLock",
-              "src": "SuperChamps/contracts/Metagame/SCLock.sol:23"
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:35"
             },
             {
               "label": "lockHistory",
               "offset": 0,
               "slot": "1",
-              "type": "t_mapping(t_address,t_array(t_struct(LockEvent)606_storage)dyn_storage)",
+              "type": "t_mapping(t_address,t_array(t_struct(LockEvent)627_storage)dyn_storage)",
               "contract": "SCLock",
-              "src": "SuperChamps/contracts/Metagame/SCLock.sol:25"
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:37"
             },
             {
               "label": "claimHistory",
               "offset": 0,
               "slot": "2",
-              "type": "t_mapping(t_address,t_array(t_struct(ClaimEvent)613_storage)dyn_storage)",
+              "type": "t_mapping(t_address,t_array(t_struct(ClaimEvent)634_storage)dyn_storage)",
               "contract": "SCLock",
-              "src": "SuperChamps/contracts/Metagame/SCLock.sol:26"
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:38"
+            },
+            {
+              "label": "isLockImported",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_bool)",
+              "contract": "SCLock",
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:39"
             }
           ],
           "types": {
@@ -218,11 +246,11 @@
               "label": "address",
               "numberOfBytes": "20"
             },
-            "t_array(t_struct(ClaimEvent)613_storage)dyn_storage": {
+            "t_array(t_struct(ClaimEvent)634_storage)dyn_storage": {
               "label": "struct SCLock.ClaimEvent[]",
               "numberOfBytes": "32"
             },
-            "t_array(t_struct(LockEvent)606_storage)dyn_storage": {
+            "t_array(t_struct(LockEvent)627_storage)dyn_storage": {
               "label": "struct SCLock.LockEvent[]",
               "numberOfBytes": "32"
             },
@@ -234,15 +262,19 @@
               "label": "contract IERC20",
               "numberOfBytes": "20"
             },
-            "t_mapping(t_address,t_array(t_struct(ClaimEvent)613_storage)dyn_storage)": {
+            "t_mapping(t_address,t_array(t_struct(ClaimEvent)634_storage)dyn_storage)": {
               "label": "mapping(address => struct SCLock.ClaimEvent[])",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_address,t_array(t_struct(LockEvent)606_storage)dyn_storage)": {
+            "t_mapping(t_address,t_array(t_struct(LockEvent)627_storage)dyn_storage)": {
               "label": "mapping(address => struct SCLock.LockEvent[])",
               "numberOfBytes": "32"
             },
-            "t_struct(ClaimEvent)613_storage": {
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_struct(ClaimEvent)634_storage": {
               "label": "struct SCLock.ClaimEvent",
               "members": [
                 {
@@ -266,7 +298,7 @@
               ],
               "numberOfBytes": "96"
             },
-            "t_struct(LockEvent)606_storage": {
+            "t_struct(LockEvent)627_storage": {
               "label": "struct SCLock.LockEvent",
               "members": [
                 {
@@ -1733,12 +1765,30 @@
         },
         "solcVersion": "0.8.30"
       },
-      "SuperChamps/contracts/Metagame/SCLock.sol:SCLock": {
+      "SuperChamps/contracts/Metagame/SCLock.sol:ISCLockOld": {
         "src": "SuperChamps/contracts/Metagame/SCLock.sol:8",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "getLockHistory(address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.30"
+      },
+      "SuperChamps/contracts/Metagame/SCLock.sol:SCLock": {
+        "src": "SuperChamps/contracts/Metagame/SCLock.sol:20",
         "version": {
-          "withMetadata": "0233df65e047d6b6ce14667589e440908405562a0ed366a9565a6b71e4afea3b",
-          "withoutMetadata": "10fa4aa648327bd2ebaaefbe80002ffeb1268bcedeab5cc6f013628c0e41bd91",
-          "linkedWithoutMetadata": "10fa4aa648327bd2ebaaefbe80002ffeb1268bcedeab5cc6f013628c0e41bd91"
+          "withMetadata": "f8661eea6b4857941be8550da6e01e094f91caf3a3fc3fae1880adf8c4da095b",
+          "withoutMetadata": "50642b0fbc1985a899010ce4adc0790bc107d37369bd6ffc2fb31996d7ba274c",
+          "linkedWithoutMetadata": "50642b0fbc1985a899010ce4adc0790bc107d37369bd6ffc2fb31996d7ba274c"
         },
         "inherit": [
           "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:OwnableUpgradeable",
@@ -1752,6 +1802,8 @@
           "lock(uint256,uint256)",
           "extendLock(uint256,uint256)",
           "claim(uint256)",
+          "importLocksFromOldContract(address,address[])",
+          "hasImportedLocks(address)",
           "getLockHistory(address)",
           "getClaimHistory(address)",
           "getLockHistoryPaginated(address,uint256,uint256)",
@@ -1768,23 +1820,31 @@
               "slot": "0",
               "type": "t_contract(IERC20)1263",
               "contract": "SCLock",
-              "src": "SuperChamps/contracts/Metagame/SCLock.sol:23"
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:35"
             },
             {
               "label": "lockHistory",
               "offset": 0,
               "slot": "1",
-              "type": "t_mapping(t_address,t_array(t_struct(LockEvent)13118_storage)dyn_storage)",
+              "type": "t_mapping(t_address,t_array(t_struct(LockEvent)13139_storage)dyn_storage)",
               "contract": "SCLock",
-              "src": "SuperChamps/contracts/Metagame/SCLock.sol:25"
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:37"
             },
             {
               "label": "claimHistory",
               "offset": 0,
               "slot": "2",
-              "type": "t_mapping(t_address,t_array(t_struct(ClaimEvent)13125_storage)dyn_storage)",
+              "type": "t_mapping(t_address,t_array(t_struct(ClaimEvent)13146_storage)dyn_storage)",
               "contract": "SCLock",
-              "src": "SuperChamps/contracts/Metagame/SCLock.sol:26"
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:38"
+            },
+            {
+              "label": "isLockImported",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_mapping(t_address,t_bool)",
+              "contract": "SCLock",
+              "src": "SuperChamps/contracts/Metagame/SCLock.sol:39"
             }
           ],
           "types": {
@@ -1792,11 +1852,11 @@
               "label": "address",
               "numberOfBytes": "20"
             },
-            "t_array(t_struct(ClaimEvent)13125_storage)dyn_storage": {
+            "t_array(t_struct(ClaimEvent)13146_storage)dyn_storage": {
               "label": "struct SCLock.ClaimEvent[]",
               "numberOfBytes": "32"
             },
-            "t_array(t_struct(LockEvent)13118_storage)dyn_storage": {
+            "t_array(t_struct(LockEvent)13139_storage)dyn_storage": {
               "label": "struct SCLock.LockEvent[]",
               "numberOfBytes": "32"
             },
@@ -1808,15 +1868,19 @@
               "label": "contract IERC20",
               "numberOfBytes": "20"
             },
-            "t_mapping(t_address,t_array(t_struct(ClaimEvent)13125_storage)dyn_storage)": {
+            "t_mapping(t_address,t_array(t_struct(ClaimEvent)13146_storage)dyn_storage)": {
               "label": "mapping(address => struct SCLock.ClaimEvent[])",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_address,t_array(t_struct(LockEvent)13118_storage)dyn_storage)": {
+            "t_mapping(t_address,t_array(t_struct(LockEvent)13139_storage)dyn_storage)": {
               "label": "mapping(address => struct SCLock.LockEvent[])",
               "numberOfBytes": "32"
             },
-            "t_struct(ClaimEvent)13125_storage": {
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_struct(ClaimEvent)13146_storage": {
               "label": "struct SCLock.ClaimEvent",
               "members": [
                 {
@@ -1840,7 +1904,7 @@
               ],
               "numberOfBytes": "96"
             },
-            "t_struct(LockEvent)13118_storage": {
+            "t_struct(LockEvent)13139_storage": {
               "label": "struct SCLock.LockEvent",
               "members": [
                 {
@@ -1946,7 +2010,7 @@
               "label": "metadata_registry",
               "offset": 0,
               "slot": "0",
-              "type": "t_contract(ISCMetagameRegistry)24210",
+              "type": "t_contract(ISCMetagameRegistry)24353",
               "contract": "SCMetagameGenericDataView",
               "src": "SuperChamps/contracts/Metagame/SCMetagameGenericDataView.sol:19"
             },
@@ -1954,21 +2018,21 @@
               "label": "location_views",
               "offset": 0,
               "slot": "1",
-              "type": "t_mapping(t_string_memory_ptr,t_contract(ISCMetagameDataSource)24076)",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(ISCMetagameDataSource)24219)",
               "contract": "SCMetagameGenericDataView",
               "src": "SuperChamps/contracts/Metagame/SCMetagameGenericDataView.sol:22"
             }
           ],
           "types": {
-            "t_contract(ISCMetagameDataSource)24076": {
+            "t_contract(ISCMetagameDataSource)24219": {
               "label": "contract ISCMetagameDataSource",
               "numberOfBytes": "20"
             },
-            "t_contract(ISCMetagameRegistry)24210": {
+            "t_contract(ISCMetagameRegistry)24353": {
               "label": "contract ISCMetagameRegistry",
               "numberOfBytes": "20"
             },
-            "t_mapping(t_string_memory_ptr,t_contract(ISCMetagameDataSource)24076)": {
+            "t_mapping(t_string_memory_ptr,t_contract(ISCMetagameDataSource)24219)": {
               "label": "mapping(string => contract ISCMetagameDataSource)",
               "numberOfBytes": "32"
             },
@@ -2173,7 +2237,7 @@
               "label": "access_pass",
               "offset": 0,
               "slot": "17",
-              "type": "t_contract(ISCAccessPass)23967",
+              "type": "t_contract(ISCAccessPass)24110",
               "contract": "SCMetagameLocationRewards",
               "src": "SuperChamps/contracts/Metagame/SCMetagameLocationRewards.sol:22"
             },
@@ -2215,7 +2279,7 @@
               "label": "contract IERC20",
               "numberOfBytes": "20"
             },
-            "t_contract(ISCAccessPass)23967": {
+            "t_contract(ISCAccessPass)24110": {
               "label": "contract ISCAccessPass",
               "numberOfBytes": "20"
             },
@@ -2303,7 +2367,7 @@
               "label": "data_view",
               "offset": 0,
               "slot": "0",
-              "type": "t_contract(ISCMetagameDataSource)24076",
+              "type": "t_contract(ISCMetagameDataSource)24219",
               "contract": "SCMetagameLocations",
               "src": "SuperChamps/contracts/Metagame/SCMetagameLocations.sol:26"
             },
@@ -2311,7 +2375,7 @@
               "label": "access_pass",
               "offset": 0,
               "slot": "1",
-              "type": "t_contract(ISCAccessPass)23967",
+              "type": "t_contract(ISCAccessPass)24110",
               "contract": "SCMetagameLocations",
               "src": "SuperChamps/contracts/Metagame/SCMetagameLocations.sol:29"
             },
@@ -2335,7 +2399,7 @@
               "label": "location_rewards",
               "offset": 0,
               "slot": "4",
-              "type": "t_mapping(t_string_memory_ptr,t_contract(SCMetagameLocationRewards)14262)",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(SCMetagameLocationRewards)14405)",
               "contract": "SCMetagameLocations",
               "src": "SuperChamps/contracts/Metagame/SCMetagameLocations.sol:39"
             },
@@ -2385,19 +2449,19 @@
               "label": "uint256[]",
               "numberOfBytes": "32"
             },
-            "t_contract(ISCAccessPass)23967": {
+            "t_contract(ISCAccessPass)24110": {
               "label": "contract ISCAccessPass",
               "numberOfBytes": "20"
             },
-            "t_contract(ISCMetagameDataSource)24076": {
+            "t_contract(ISCMetagameDataSource)24219": {
               "label": "contract ISCMetagameDataSource",
               "numberOfBytes": "20"
             },
-            "t_contract(SCMetagameLocationRewards)14262": {
+            "t_contract(SCMetagameLocationRewards)14405": {
               "label": "contract SCMetagameLocationRewards",
               "numberOfBytes": "20"
             },
-            "t_mapping(t_string_memory_ptr,t_contract(SCMetagameLocationRewards)14262)": {
+            "t_mapping(t_string_memory_ptr,t_contract(SCMetagameLocationRewards)14405)": {
               "label": "mapping(string => contract SCMetagameLocationRewards)",
               "numberOfBytes": "32"
             },
@@ -2462,7 +2526,7 @@
               "label": "_user_to_checkpoint_to_data",
               "offset": 0,
               "slot": "0",
-              "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(StakingData)14819_storage))",
+              "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(StakingData)14962_storage))",
               "contract": "SCMetagamePool",
               "src": "SuperChamps/contracts/Metagame/SCMetagamePool.sol:24"
             },
@@ -2500,7 +2564,7 @@
               "label": "mapping(address => mapping(address => uint256))",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_address,t_mapping(t_uint256,t_struct(StakingData)14819_storage))": {
+            "t_mapping(t_address,t_mapping(t_uint256,t_struct(StakingData)14962_storage))": {
               "label": "mapping(address => mapping(uint256 => struct SCMetagamePool.StakingData))",
               "numberOfBytes": "32"
             },
@@ -2508,11 +2572,11 @@
               "label": "mapping(address => uint256)",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_uint256,t_struct(StakingData)14819_storage)": {
+            "t_mapping(t_uint256,t_struct(StakingData)14962_storage)": {
               "label": "mapping(uint256 => struct SCMetagamePool.StakingData)",
               "numberOfBytes": "32"
             },
-            "t_struct(StakingData)14819_storage": {
+            "t_struct(StakingData)14962_storage": {
               "label": "struct SCMetagamePool.StakingData",
               "members": [
                 {
@@ -2791,7 +2855,7 @@
               "label": "_renderer",
               "offset": 0,
               "slot": "6",
-              "type": "t_contract(IERC721MetadataRenderer)23881",
+              "type": "t_contract(IERC721MetadataRenderer)24024",
               "contract": "SCAccessPass",
               "src": "SuperChamps/contracts/NFTs/SCAccessPass.sol:18"
             },
@@ -2849,7 +2913,7 @@
               "label": "bool",
               "numberOfBytes": "1"
             },
-            "t_contract(IERC721MetadataRenderer)23881": {
+            "t_contract(IERC721MetadataRenderer)24024": {
               "label": "contract IERC721MetadataRenderer",
               "numberOfBytes": "20"
             },
@@ -2925,7 +2989,7 @@
               "label": "_access_pass",
               "offset": 0,
               "slot": "0",
-              "type": "t_contract(ISCAccessPass)23967",
+              "type": "t_contract(ISCAccessPass)24110",
               "contract": "SCAccessPassRenderer",
               "src": "SuperChamps/contracts/NFTs/SCAccessPassRenderer.sol:21"
             },
@@ -2967,7 +3031,7 @@
               "label": "bool",
               "numberOfBytes": "1"
             },
-            "t_contract(ISCAccessPass)23967": {
+            "t_contract(ISCAccessPass)24110": {
               "label": "contract ISCAccessPass",
               "numberOfBytes": "20"
             },
@@ -3174,7 +3238,7 @@
               "label": "_renderer",
               "offset": 0,
               "slot": "6",
-              "type": "t_contract(IERC721MetadataRenderer)23881",
+              "type": "t_contract(IERC721MetadataRenderer)24024",
               "contract": "SCTempLockedNFT",
               "src": "SuperChamps/contracts/NFTs/SCTempLockedNFT.sol:26"
             },
@@ -3182,7 +3246,7 @@
               "label": "_token_data",
               "offset": 0,
               "slot": "7",
-              "type": "t_mapping(t_uint256,t_struct(TokenData)16773_storage)",
+              "type": "t_mapping(t_uint256,t_struct(TokenData)16916_storage)",
               "contract": "SCTempLockedNFT",
               "src": "SuperChamps/contracts/NFTs/SCTempLockedNFT.sol:32"
             },
@@ -3228,7 +3292,7 @@
               "label": "bool",
               "numberOfBytes": "1"
             },
-            "t_contract(IERC721MetadataRenderer)23881": {
+            "t_contract(IERC721MetadataRenderer)24024": {
               "label": "contract IERC721MetadataRenderer",
               "numberOfBytes": "20"
             },
@@ -3256,7 +3320,7 @@
               "label": "mapping(uint256 => bool)",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_uint256,t_struct(TokenData)16773_storage)": {
+            "t_mapping(t_uint256,t_struct(TokenData)16916_storage)": {
               "label": "mapping(uint256 => struct SCTempLockedNFT.TokenData)",
               "numberOfBytes": "32"
             },
@@ -3264,7 +3328,7 @@
               "label": "string",
               "numberOfBytes": "32"
             },
-            "t_struct(TokenData)16773_storage": {
+            "t_struct(TokenData)16916_storage": {
               "label": "struct SCTempLockedNFT.TokenData",
               "members": [
                 {
@@ -3355,7 +3419,7 @@
               "label": "staking_data",
               "offset": 0,
               "slot": "0",
-              "type": "t_mapping(t_uint256,t_struct(StakingData)17350_storage)",
+              "type": "t_mapping(t_uint256,t_struct(StakingData)17493_storage)",
               "contract": "GenesisNFTStaking",
               "src": "SuperChamps/contracts/Seasons/GenesisNFTStaking.sol:26"
             },
@@ -3389,7 +3453,7 @@
               "label": "mapping(bytes32 => uint256)",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_uint256,t_struct(StakingData)17350_storage)": {
+            "t_mapping(t_uint256,t_struct(StakingData)17493_storage)": {
               "label": "mapping(uint256 => struct GenesisNFTStaking.StakingData)",
               "numberOfBytes": "32"
             },
@@ -3411,7 +3475,7 @@
               ],
               "numberOfBytes": "64"
             },
-            "t_struct(StakingData)17350_storage": {
+            "t_struct(StakingData)17493_storage": {
               "label": "struct GenesisNFTStaking.StakingData",
               "members": [
                 {
@@ -3494,7 +3558,7 @@
               "label": "memeLeaderboards",
               "offset": 0,
               "slot": "0",
-              "type": "t_array(t_struct(MemeLeaderboard)23988_storage)dyn_storage",
+              "type": "t_array(t_struct(MemeLeaderboard)24131_storage)dyn_storage",
               "contract": "SCMLRewards",
               "src": "SuperChamps/contracts/Seasons/SCMLRewards.sol:18"
             },
@@ -3524,7 +3588,7 @@
               "label": "address[]",
               "numberOfBytes": "32"
             },
-            "t_array(t_struct(MemeLeaderboard)23988_storage)dyn_storage": {
+            "t_array(t_struct(MemeLeaderboard)24131_storage)dyn_storage": {
               "label": "struct ISCMLRewards.MemeLeaderboard[]",
               "numberOfBytes": "32"
             },
@@ -3544,7 +3608,7 @@
               "label": "mapping(uint256 => mapping(address => mapping(address => uint256)))",
               "numberOfBytes": "32"
             },
-            "t_struct(MemeLeaderboard)23988_storage": {
+            "t_struct(MemeLeaderboard)24131_storage": {
               "label": "struct ISCMLRewards.MemeLeaderboard",
               "members": [
                 {
@@ -3660,7 +3724,7 @@
               "label": "access_pass",
               "offset": 0,
               "slot": "1",
-              "type": "t_contract(ISCAccessPass)23967",
+              "type": "t_contract(ISCAccessPass)24110",
               "contract": "SCSeasonRewards",
               "src": "SuperChamps/contracts/Seasons/SCSeasonRewards.sol:25"
             },
@@ -3668,7 +3732,7 @@
               "label": "staking_pool",
               "offset": 0,
               "slot": "2",
-              "type": "t_contract(ISCMetagamePool)24164",
+              "type": "t_contract(ISCMetagamePool)24307",
               "contract": "SCSeasonRewards",
               "src": "SuperChamps/contracts/Seasons/SCSeasonRewards.sol:28"
             },
@@ -3676,7 +3740,7 @@
               "label": "seasons",
               "offset": 0,
               "slot": "3",
-              "type": "t_array(t_struct(Season)24226_storage)dyn_storage",
+              "type": "t_array(t_struct(Season)24369_storage)dyn_storage",
               "contract": "SCSeasonRewards",
               "src": "SuperChamps/contracts/Seasons/SCSeasonRewards.sol:31"
             },
@@ -3718,7 +3782,7 @@
               "label": "address",
               "numberOfBytes": "20"
             },
-            "t_array(t_struct(Season)24226_storage)dyn_storage": {
+            "t_array(t_struct(Season)24369_storage)dyn_storage": {
               "label": "struct ISCSeasonRewards.Season[]",
               "numberOfBytes": "32"
             },
@@ -3730,11 +3794,11 @@
               "label": "bytes",
               "numberOfBytes": "32"
             },
-            "t_contract(ISCAccessPass)23967": {
+            "t_contract(ISCAccessPass)24110": {
               "label": "contract ISCAccessPass",
               "numberOfBytes": "20"
             },
-            "t_contract(ISCMetagamePool)24164": {
+            "t_contract(ISCMetagamePool)24307": {
               "label": "contract ISCMetagamePool",
               "numberOfBytes": "20"
             },
@@ -3750,7 +3814,7 @@
               "label": "mapping(uint256 => mapping(address => uint256))",
               "numberOfBytes": "32"
             },
-            "t_struct(Season)24226_storage": {
+            "t_struct(Season)24369_storage": {
               "label": "struct ISCSeasonRewards.Season",
               "members": [
                 {
@@ -4334,7 +4398,7 @@
               "label": "role_mapping",
               "offset": 0,
               "slot": "0",
-              "type": "t_mapping(t_address,t_mapping(t_enum(Role)23901,t_bool))",
+              "type": "t_mapping(t_address,t_mapping(t_enum(Role)24044,t_bool))",
               "contract": "PermissionsManager",
               "src": "SuperChamps/contracts/Utils/PermissionsManager.sol:15"
             },
@@ -4356,7 +4420,7 @@
               "label": "bool",
               "numberOfBytes": "1"
             },
-            "t_enum(Role)23901": {
+            "t_enum(Role)24044": {
               "label": "enum IPermissionsManager.Role",
               "members": [
                 "ANY",
@@ -4377,7 +4441,7 @@
               ],
               "numberOfBytes": "1"
             },
-            "t_mapping(t_address,t_mapping(t_enum(Role)23901,t_bool))": {
+            "t_mapping(t_address,t_mapping(t_enum(Role)24044,t_bool))": {
               "label": "mapping(address => mapping(enum IPermissionsManager.Role => bool))",
               "numberOfBytes": "32"
             },
@@ -4385,7 +4449,7 @@
               "label": "mapping(address => uint256)",
               "numberOfBytes": "32"
             },
-            "t_mapping(t_enum(Role)23901,t_bool)": {
+            "t_mapping(t_enum(Role)24044,t_bool)": {
               "label": "mapping(enum IPermissionsManager.Role => bool)",
               "numberOfBytes": "32"
             },
@@ -4435,13 +4499,13 @@
               "label": "token",
               "offset": 0,
               "slot": "0",
-              "type": "t_contract(SuperChampsToken)20272",
+              "type": "t_contract(SuperChampsToken)20415",
               "contract": "SCDeploymentHelper",
               "src": "SuperChamps/contracts/Utils/SCDeploymentHelper.sol:20"
             }
           ],
           "types": {
-            "t_contract(SuperChampsToken)20272": {
+            "t_contract(SuperChampsToken)20415": {
               "label": "contract SuperChampsToken",
               "numberOfBytes": "20"
             }

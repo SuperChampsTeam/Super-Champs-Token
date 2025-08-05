@@ -71,7 +71,7 @@ const getFeeData = async () => {
 
 const upgradeSCLock = async () => {
   try {
-    const proxyAddress = "0x93766606E18104FC328766F10dbA78174A2eCf53"; // Replace with your actual proxy address
+    const proxyAddress = "0x36667b2357dE2B7b91CC79952C314D1756CCd2Ad"; // Replace with your actual proxy address
     const SCLockFactory = await ethers.getContractFactory("SCLock");
     const feeData = await getFeeData();
 
