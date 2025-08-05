@@ -42,6 +42,7 @@ contract SCLock is Initializable, OwnableUpgradeable {
     event Claimed(address indexed user, uint256 indexed lockId, uint256 amount, uint256 claimedAt);
     event LockExtended(address indexed user, uint256 indexed lockId, uint256 newEndTime);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
