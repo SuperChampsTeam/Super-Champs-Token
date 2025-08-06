@@ -18,7 +18,7 @@ if (!initalMintAddress || !firstAddress || !secondAddress || !thirdAddress || !f
 }
 
 const wallets = [firstAddress, secondAddress, thirdAddress, fourthAddress];
-const percents = [6667, 1333, 1333, 667];
+const percents = [0, 3667, 2666, 3667];
 
 
 const getFeeData = async () => {

@@ -7,8 +7,8 @@ set -euo pipefail
 : "${CONTRACT_ADDRESS:?Missing CONTRACT_ADDRESS}"
 
 ABI_FILE="contract_abi.json"
-FUNC="updatePeriod()"
-VIEW_FUNC="lastEmission()"
+FUNC="mintTokenAndDistribute()"
+# VIEW_FUNC="lastEmission()"
 
 # Sanity check ABI file
 if [ ! -f "$ABI_FILE" ]; then
@@ -34,9 +34,9 @@ cast await "$TX_HASH" --rpc-url "$RPC_URL"
 
 echo "✅ updatePeriod() confirmed"
 
-# Query lastEmission
-LAST=$(cast call "$CONTRACT_ADDRESS" "$VIEW_FUNC" \
-  --rpc-url "$RPC_URL" \
-  --abi "$ABI_FILE")
+# # Query lastEmission
+# LAST=$(cast call "$CONTRACT_ADDRESS" "$VIEW_FUNC" \
+#   --rpc-url "$RPC_URL" \
+#   --abi "$ABI_FILE")
 
-echo "📊 lastEmission: $LAST"
+# echo "📊 lastEmission: $LAST"
