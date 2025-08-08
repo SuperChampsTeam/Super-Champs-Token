@@ -1,5 +1,5 @@
 const kiguMinterVersion = "0";
-const kiguMinterAddress = "0x8F52023c9F59c78cABa3532c086aF5afE64c485d";
+const kiguMinterAddress = "0x038988e1Be380B9dA8B2458190C5ECD86fBf22aa";
 const kiguMinterAbi = [
   {
     "inputs": [

@@ -1,5 +1,5 @@
 const kiguTokenVersion = "0";
-const kiguTokenAddress = "0x1a306EA82CC5D690054E5b541E3732226a81f4aD";
+const kiguTokenAddress = "0x8e48D9F6D73e9805Df87Dcf63f7B35AE04079713";
 const kiguTokenAbi = [
   {
     "inputs": [],
