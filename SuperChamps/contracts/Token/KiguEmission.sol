@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../.././interfaces/IKiguMinter.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-contract KiguEmission is OwnableUpgradeable {
-    IERC20 public token;
+contract KiguEmission is Ownable {
+    IERC20 public kiguToken;
     IKiguMinter public minter;
-
+    uint256 public constant WEEK = 7 * 86400;
     address[4] public wallets;
     uint256[4] public percents;
 
@@ -18,14 +18,17 @@ contract KiguEmission is OwnableUpgradeable {
     uint8 public constant wallet_length = 4;
 
     event Distributed(uint256 indexed epoch, uint256 emission);
+    event SetMinter(address indexed oldMinter, address indexed newMinter);
+    event WalletsAndPercentsUpdated(address[4] indexed wallets, uint256[4] indexed percents);
 
-    function initialize(address _token) public initializer {
-        __Ownable_init(_msgSender());
-        token = IERC20(_token);
+    constructor(address _token) Ownable(msg.sender) {
+        kiguToken = IERC20(_token);
     }
 
     function setMinter(address _minter) external onlyOwner{
+        address oldMinter = address(minter);
         minter = IKiguMinter(_minter);
+        emit SetMinter(oldMinter, _minter);
     }
 
     function setEmissionManager(address _emissionManager) external onlyOwner{ 
@@ -53,17 +56,19 @@ contract KiguEmission is OwnableUpgradeable {
         
         wallets = _wallets;
         percents = _percents;
+        emit WalletsAndPercentsUpdated(_wallets, _percents);
     }
 
     function mintTokenAndDistribute() external onlyOwnerOrEmissionManager {
+        require(wallets[0] != address(0) && wallets[1] != address(0) && wallets[2] != address(0) && wallets[3] != address(0), "setWalletDetailsFirst");
         uint256 emission = minter.mintKiguToken();
 
         for (uint8 i = 0; i < wallet_length; i++) {
             uint256 share = (emission * percents[i]) / 10_000;
-            require(token.transfer(wallets[i], share), "Transfer failed");
+            kiguToken.transfer(wallets[i], share);
         }
 
-        emit Distributed(block.timestamp / 1 weeks, emission);
+        emit Distributed(block.timestamp / WEEK, emission);
     }
 
     function version() external pure returns (string memory) {
