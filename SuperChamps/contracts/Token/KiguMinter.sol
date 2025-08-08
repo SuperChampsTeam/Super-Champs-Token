@@ -14,7 +14,7 @@ contract KiguMinter {
     uint256 public totalMinted;
     uint256 public epochCount;
     uint256 public activePeriod;
-    uint256 public constant WEEK = 7 * 86400;
+    uint256 public constant WEEK = 30;
     uint256 public constant DECAY_FACTOR = 9700;
     uint256 public lastEmission;
 

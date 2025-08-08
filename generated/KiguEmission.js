@@ -1,5 +1,5 @@
 const kiguEmissionVersion = "0";
-const kiguEmissionAddress = "0x17D1182fC8a9a87a0f4631ffAb4A6C535aF7B02E";
+const kiguEmissionAddress = "0xb33385212a358C65B9d9B87F211D570E9346FD75";
 const kiguEmissionAbi = [
   {
     "inputs": [
