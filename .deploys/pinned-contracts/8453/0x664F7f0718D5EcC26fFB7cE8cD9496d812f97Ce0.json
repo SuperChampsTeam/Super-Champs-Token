@@ -1,0 +1,51 @@
+{
+  "name": "CREATE3Factory",
+  "address": "0x664F7f0718D5EcC26fFB7cE8cD9496d812f97Ce0",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "salt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "creationCode",
+          "type": "bytes"
+        }
+      ],
+      "name": "deploy",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "deployed",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "salt",
+          "type": "uint256"
+        }
+      ],
+      "name": "getDeployed",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "deployed",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "filePath": " - connect to localhost - /SuperChamps/contracts/Utils/C3DeploymentProxy.sol",
+  "pinnedAt": 1725404024683
+}

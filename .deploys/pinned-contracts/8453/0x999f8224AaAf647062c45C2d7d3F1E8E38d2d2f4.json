@@ -1,0 +1,695 @@
+{
+  "name": "SCSeasonRewards",
+  "address": "0x999f8224AaAf647062c45C2d7d3F1E8E38d2d2f4",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "season_id_",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "id_",
+          "type": "uint256"
+        }
+      ],
+      "name": "endSeason",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "id_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "reward_amount_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "claim_duration_",
+          "type": "uint256"
+        }
+      ],
+      "name": "finalize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "tokenAddress_",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenAmount_",
+          "type": "uint256"
+        }
+      ],
+      "name": "recoverERC20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "season_id_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address[]",
+          "name": "players_",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "rewards_",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "reportRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "id_",
+          "type": "uint256"
+        }
+      ],
+      "name": "revokeUnclaimedReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "treasury_",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasury",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "permissions_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "token_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "treasury_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "access_pass_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "staking_pool_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "staker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rewards",
+          "type": "uint256"
+        }
+      ],
+      "name": "StakedRewards",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "season_id_",
+          "type": "uint256"
+        }
+      ],
+      "name": "stakeReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "start_time_",
+          "type": "uint256"
+        }
+      ],
+      "name": "startSeason",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "end_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remaining_reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claim_end_time",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ISCSeasonRewards.Season",
+          "name": "season_",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "treasury",
+          "type": "address"
+        }
+      ],
+      "name": "TreasurySet",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "access_pass",
+      "outputs": [
+        {
+          "internalType": "contract ISCAccessPass",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "claimed_rewards",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "season_id_",
+          "type": "uint256"
+        }
+      ],
+      "name": "getClaimableReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_reward",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "end_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remaining_reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claim_end_time",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ISCSeasonRewards.Season",
+          "name": "season_",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp_",
+          "type": "uint256"
+        }
+      ],
+      "name": "isSeasonActive",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "_active",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "end_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remaining_reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claim_end_time",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ISCSeasonRewards.Season",
+          "name": "season_",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp_",
+          "type": "uint256"
+        }
+      ],
+      "name": "isSeasonClaimingActive",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "_active",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "end_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remaining_reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claim_end_time",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ISCSeasonRewards.Season",
+          "name": "season_",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp_",
+          "type": "uint256"
+        }
+      ],
+      "name": "isSeasonClaimingEnded",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "_ended",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "end_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remaining_reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claim_end_time",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ISCSeasonRewards.Season",
+          "name": "season_",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp_",
+          "type": "uint256"
+        }
+      ],
+      "name": "isSeasonEnded",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "_ended",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "start_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "end_time",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remaining_reward_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claim_end_time",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ISCSeasonRewards.Season",
+          "name": "season_",
+          "type": "tuple"
+        }
+      ],
+      "name": "isSeasonFinalized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "_finalized",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "permissions",
+      "outputs": [
+        {
+          "internalType": "contract IPermissionsManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "player_last_signature_timestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "season_rewards",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "seasons",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "start_time",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "end_time",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "reward_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "remaining_reward_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "claim_end_time",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "staking_pool",
+      "outputs": [
+        {
+          "internalType": "contract ISCMetagamePool",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "filePath": " - connect to localhost - /SuperChamps/contracts/Seasons/SCSeasonRewards.sol",
+  "pinnedAt": 1730831717724
+}

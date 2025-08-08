@@ -6,3 +6,8 @@
 node_modules
 ganache_db
 build
+SuperChamps/contracts/Token/superchamps_token_build.json
+/SuperChamps/contracts/Token/OFT/artifacts
+remix-compiler.config.js
+package.json
+package-lock.json
