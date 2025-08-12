@@ -1,13 +1,7 @@
 const { ethers, run } = require("hardhat");
 
-const tokenAddress =  process.env.KIGU_ADDRESS;
-const treasuryAddress =  process.env.TREASURY_ADDRESS;
-
-console.log("VARS", tokenAddress, treasuryAddress);
-if (!tokenAddress || !treasuryAddress) {
-  console.error("environment variables not set");
-  process.exit(1);
-}
+const tokenAddress = "0xdfbB836C3192d30865Ee2963D2a75Da74a330922";
+const treasuryAddress = "0x8623b03c93f88f537BD65908D7283e8c0E116d1D"
 
 async function verify(name, address, args = []) {
   try {
@@ -42,7 +36,7 @@ async function main() {
     permissions.address, // permissions_
     tokenAddress,        // token_
     treasuryAddress, // treasury_
-    ethers.constants.AddressZero, // access_pass_
+    // ethers.constants.AddressZero, // access_pass_
     ethers.constants.AddressZero  // staking_pool_
   );
 
@@ -56,7 +50,7 @@ async function main() {
     tokenAddress,
     ethers.constants.AddressZero,
     ethers.constants.AddressZero,
-    ethers.constants.AddressZero,
+    // ethers.constants.AddressZero,
   ]);
 }
 
